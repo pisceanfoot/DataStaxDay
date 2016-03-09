@@ -17,22 +17,26 @@ We have an 8 node cluster for you to play with! The cluster is currently running
 ssh root@ipaddress 
 // You can login to any of these nodes 
 
-Node 1: 52.26.162.19
-Node 2: 52.36.64.67
-Node 3: 52.36.214.40
-Node 4: 52.26.162.19
-Node 5: 52.36.159.175
-Node 6: 52.36.211.216
-Node 7: 52.36.213.110
-Node 8: 52.36.27.29
+Node 1: ssh datastax@104.40.21.26
+Node 2: ssh datastax@104.40.17.84
+Node 3: ssh datastax@104.40.20.59
+Node 4: ssh datastax@104.40.18.37
+Node 5: ssh datastax@104.40.23.128
+Node 6: ssh datastax@104.40.17.18
+Node 7: ssh datastax@104.40.20.12
+Node 8: ssh datastax@104.40.17.211
+Node 9: ssh datastax@104.40.21.203
+Node 10: ssh datastax@104.40.22.194
+Node 11: ssh datastax@104.40.21.112
+Node 12: ssh datastax@104.40.21.31
 password: C@ssandra
 ```
 
 #### UI's you'll want to play around with
  
- - OpsCenter: http://52.36.149.123:8888/
+ - OpsCenter: http://138.91.160.136:8888/opscenter/index.html
  - Spark Master: http://52.36.149.123:7080
- - Solr UI: http://52.36.149.123:8983/solr/
+ - Solr UI: http://104.40.21.26:8983/solr/
 
 #### Connecting to the cluster from DevCenter
 - Simply add a new connection
