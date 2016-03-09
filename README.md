@@ -10,11 +10,11 @@ In this session, you'll learn all about DataStax Enterprise. It's a mix between 
 Hands On Setup
 -------------
 
-We have an 8 node cluster for you to play with! The cluster is currently running in both **search** and **analytics** mode so you can take advantage of both Spark and Solr on your Cassandra data. 
+We have an 12 node cluster for you to play with! The cluster is currently running in both **search** and **analytics** mode so you can take advantage of both Spark and Solr on your Cassandra data. 
 
 ```
 // To SSH into the cluster:
-ssh root@ipaddress 
+ssh datastax@ipaddress 
 // You can login to any of these nodes 
 
 Node 1: ssh datastax@104.40.21.26
@@ -35,7 +35,7 @@ password: C@ssandra
 #### UI's you'll want to play around with
  
  - OpsCenter: http://138.91.160.136:8888/opscenter/index.html
- - Spark Master: http://52.36.149.123:7080
+ - Spark Master: http://104.40.21.26:7080
  - Solr UI: http://104.40.21.26:8983/solr/
 
 #### Connecting to the cluster from DevCenter
@@ -190,7 +190,7 @@ This by default will map Cassandra types to Solr types for you. Anyone familiar 
 ```
 SELECT * FROM <keyspace>.<table> WHERE solr_query=‘{“q”:”column:*”}’;
 
-SELECT * FROM <keyspace>.sales WHERE solr_query='{"q":”name:marc", "fq":”item:*pple*", "sort":”product:asc"}’; 
+SELECT * FROM <keyspace>.sales WHERE solr_query='{"q":”name:marc", "fq":”item:*pple*", "sort":"product asc"}’; 
 ```
 > For your reference, [here's the doc](http://docs.datastax.com/en/datastax_enterprise/4.8/datastax_enterprise/srch/srchCql.html?scroll=srchCQL__srchSolrTokenExp) that shows some of things you can do
 
