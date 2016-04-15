@@ -10,33 +10,29 @@ In this session, you'll learn all about DataStax Enterprise. It's a mix between 
 Hands On Setup
 -------------
 
-We have an 12 node cluster for you to play with! The cluster is currently running in both **search** and **analytics** mode so you can take advantage of both Spark and Solr on your Cassandra data. 
+We have an 8 node cluster for you to play with! The cluster is currently running in both **search** and **analytics** mode so you can take advantage of both Spark and Solr on your Cassandra data. 
 
 ```
 // To SSH into the cluster:
 ssh datastax@ipaddress 
-// You can login to any of these nodes 
-
-Node 1: ssh datastax@104.40.21.26
-Node 2: ssh datastax@104.40.17.84
-Node 3: ssh datastax@104.40.20.59
-Node 4: ssh datastax@104.40.18.37
-Node 5: ssh datastax@104.40.23.128
-Node 6: ssh datastax@104.40.17.18
-Node 7: ssh datastax@104.40.20.12
-Node 8: ssh datastax@104.40.17.211
-Node 9: ssh datastax@104.40.21.203
-Node 10: ssh datastax@104.40.22.194
-Node 11: ssh datastax@104.40.21.112
-Node 12: ssh datastax@104.40.21.31
+// You can login to any one of these 8 nodes 
+13.88.17.160                                          
+13.88.18.128                                            
+13.88.19.36                              
+13.88.20.218                                            
+13.88.22.76      
+13.88.23.4    -- this node has also become our SPARKMASTER. so don't shutdown DSE here or stop it while doing the exercises.
+13.88.23.60
 password: C@ssandra
+
+//13.88.17.120 -- DO NOT SSH to this node.
 ```
 
 #### UI's you'll want to play around with
  
- - OpsCenter: http://138.91.160.136:8888/opscenter/index.html
- - Spark Master: http://104.40.21.26:7080
- - Solr UI: http://104.40.21.26:8983/solr/
+ - OpsCenter: http://13.88.18.150:8888/opscenter/index.html
+ - Spark Master: http://13.88.23.4:7080
+ - Solr UI: http://13.88.23.4:8983/solr/
 
 #### Connecting to the cluster from DevCenter
 - Simply add a new connection
@@ -59,7 +55,7 @@ Cassandra is the brains of DSE. It's an awesome storage engine that handles repl
 
 Try the following CQL commands in DevCenter. In addition to DevCenter, you can also use **CQLSH** as an interactive command line tool for CQL access to Cassandra. Start CQLSH like this:
 
-```cqlsh 127.0.0.1``` 
+```cqlsh <<private ip address>>``` 
 > Make sure to replace 127.0.0.1 with the IP of the respective node 
 
 Let's make our first Cassandra Keyspace! 
@@ -85,17 +81,17 @@ CREATE TABLE <yourkeyspace>.sales (
 Let's get some data into your table! Cut and paste these inserts into DevCenter or CQLSH. Feel free to insert your own data values, as well. 
 
 ```
-INSERT INTO <yourkeyspace>.sales (name, time, item, price) VALUES ('marc', 20150205, 'Apple Watch', 299.00);
-INSERT INTO <yourkeyspace>.sales (name, time, item, price) VALUES ('marc', 20150204, 'Apple iPad', 999.00);
+INSERT INTO <yourkeyspace>.sales (name, time, item, price) VALUES ('kunal', 20150205, 'Apple Watch', 299.00);
+INSERT INTO <yourkeyspace>.sales (name, time, item, price) VALUES ('kunal', 20150204, 'Apple iPad', 999.00);
 INSERT INTO <yourkeyspace>.sales (name, time, item, price) VALUES ('rich', 20150206, 'Music Man Stingray Bass', 1499.00);
-INSERT INTO <yourkeyspace>.sales (name, time, item, price) VALUES ('marc', 20150207, 'Jimi Hendrix Stratocaster', 899.00);
+INSERT INTO <yourkeyspace>.sales (name, time, item, price) VALUES ('kunal', 20150207, 'Jimi Hendrix Stratocaster', 899.00);
 INSERT INTO <yourkeyspace>.sales (name, time, item, price) VALUES ('rich', 20150208, 'Santa Cruz Tallboy 29er', 4599.00);
 ```
 
 And to retrieve it:
 
 ```
-SELECT * FROM <keyspace>.sales where name='marc' AND time >=20150205 ;
+SELECT * FROM <keyspace>.sales where name='kunal' AND time >=20150227 ;
 ```
 >See what I did there? You can do range scans on clustering keys! Give it a try.
 
@@ -151,7 +147,7 @@ Let's try the **SELECT** statement again. Any changes in latency?
 
 **Let's try this again** but this time, let's pay attention to what's happening in the trace
 ```
-consistency all
+consistency local_all
 ```
 ```
 SELECT * FROM <yourkeyspace>.sales where name='<enter name>';
@@ -190,7 +186,7 @@ This by default will map Cassandra types to Solr types for you. Anyone familiar 
 ```
 SELECT * FROM <keyspace>.<table> WHERE solr_query=‘{“q”:”column:*”}’;
 
-SELECT * FROM <keyspace>.sales WHERE solr_query='{"q":”name:marc", "fq":”item:*pple*", "sort":"product asc"}’; 
+SELECT * FROM <keyspace>.sales WHERE solr_query='{"q":”name:marc", "fq":”item:*pple*", "sort":”product:asc"}’; 
 ```
 > For your reference, [here's the doc](http://docs.datastax.com/en/datastax_enterprise/4.8/datastax_enterprise/srch/srchCql.html?scroll=srchCQL__srchSolrTokenExp) that shows some of things you can do
 
@@ -300,7 +296,10 @@ DSE Streaming Demo
 --------------------
 **Spark Notebook**
 
-[Spark Notebook](http://spark-notebook.io/) is an awesome tool for exploring Spark and making simple visualizations. It's not a DataStax product. But we have an instance up and running so you can check out our streaming demo here: http://52.36.23.184:9290/
+[Spark Notebook](http://spark-notebook.io/) is an awesome tool for exploring Spark and making simple visualizations. It's not a DataStax product. Check in back here again soon for a quick demo - here: http://13.88.17.120:9000/tree/kunal#
+
+http://13.88.17.120:9000/notebooks/dse-streaming/StreamRatingsFromKafka.snb
+http://13.88.17.120:9000/notebooks/dse-streaming/CassandraMovieAnalysis.snb
 
 >Have fun with it! See what you come up with :)
 
