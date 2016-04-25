@@ -27,9 +27,9 @@ password: C@ssandra
 
 #### UI's you'll want to play around with
  
- - OpsCenter: http://13.88.18.150:8888/opscenter/index.html
- - Spark Master: http://13.88.23.4:7080
- - Solr UI: http://13.88.23.4:8983/solr/
+ - OpsCenter: http://13.91.98.32:8888/opscenter/index.html
+ - Spark Master: http://13.93.208.114:7080
+ - Solr UI: http://13.93.208.114:8983/solr/
 
 #### Connecting to the cluster from DevCenter
 - Simply add a new connection
@@ -293,7 +293,7 @@ DSE Streaming Demo
 --------------------
 **Spark Notebook**
 
-[Spark Notebook](http://spark-notebook.io/) is an awesome tool for exploring Spark and making simple visualizations. It's not a DataStax product. Check in back here again soon for a quick demo. 
+[Spark Notebook](http://spark-notebook.io/) is an awesome tool for exploring Spark and making simple visualizations. It's not a DataStax product. Check in back here again soon for a quick demo. See: https://github.com/retroryan/twitter_classifier/tree/master/notebooks/TweetAnalysis
 
 >Have fun with it! See what you come up with :)
 
