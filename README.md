@@ -16,13 +16,10 @@ We have an 8 node cluster for you to play with! The cluster is currently running
 // To SSH into the cluster:
 ssh datastax@ipaddress 
 // You can login to any one of these 8 nodes 
-13.88.17.160                                          
-13.88.18.128                                            
-13.88.19.36                              
-13.88.20.218                                            
-13.88.22.76      
-13.88.23.4    -- this node has also become our SPARKMASTER. so don't shutdown DSE here or stop it while doing the exercises.
-13.88.23.60
+13.93.208.114
+13.93.211.161
+13.93.208.15
+13.91.98.32
 password: C@ssandra
 
 //13.88.17.120 -- DO NOT SSH to this node.
@@ -296,10 +293,7 @@ DSE Streaming Demo
 --------------------
 **Spark Notebook**
 
-[Spark Notebook](http://spark-notebook.io/) is an awesome tool for exploring Spark and making simple visualizations. It's not a DataStax product. Check in back here again soon for a quick demo - here: http://13.88.17.120:9000/tree/kunal#
-
-http://13.88.17.120:9000/notebooks/dse-streaming/StreamRatingsFromKafka.snb
-http://13.88.17.120:9000/notebooks/dse-streaming/CassandraMovieAnalysis.snb
+[Spark Notebook](http://spark-notebook.io/) is an awesome tool for exploring Spark and making simple visualizations. It's not a DataStax product. Check in back here again soon for a quick demo. 
 
 >Have fun with it! See what you come up with :)
 
