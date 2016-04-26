@@ -22,7 +22,6 @@ ssh datastax@ipaddress
 13.91.98.32
 password: C@ssandra
 
-//13.88.17.120 -- DO NOT SSH to this node.
 ```
 
 #### UI's you'll want to play around with
