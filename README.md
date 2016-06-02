@@ -322,8 +322,9 @@ tracing on
 consistency all
 ```
 
->Any query will now be traced. Cassandra provides a description of each step it takes to satisfy the request, the names of nodes that are affected, the time for each step, and the total time for the request.
->**Consistency** level "all" means all 3 replicas need to respond to a given request (read OR write) to be successful. Let's do a **SELECT** statement to see the effects.
+Any query will now be traced. Cassandra provides a description of each step it takes to satisfy the request, the names of nodes that are affected, the time for each step, and the total time for the request.
+
+**Consistency** level "all" means all 3 replicas need to respond to a given request (read OR write) to be successful. Let's do a **SELECT** statement to see the effects.
 
 Set your keyspace created earlier as the default keyspace:
 ```
