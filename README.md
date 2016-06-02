@@ -419,26 +419,27 @@ select * from sales WHERE solr_query='{"q":"name:kunal", "fq":"item:*pple*", "so
 
 OK! Time to work with some more interesting data. Meet Amazon book sales data.
 
-Install pip
------------
+**Install pip**
+
 ```
 sudo apt-get install gcc python-dev
 sudo apt-get install python-pip python-dev build-essential 
 sudo pip install --upgrade pip
 sudo pip install --upgrade virtualenv 
 ```
-Install the Python Cassandra Driver 
-------------------------------------
+**Install the Python Cassandra Driver**
+
 >This might take some time on less powerful machines
+
 ```
 sudo pip install cassandra-driver
 ``` 
-Run solr_dataloader.py
-----------------------
+**Run solr_dataloader.py**
+
 This will create the CQL schemas and load the data 
 
-Run create_core.sh
-------------------
+**Run create_core.sh**
+
 This will generate Solr cores and index the data
 
 
