@@ -294,7 +294,7 @@ Here are a few Cassandra data modeling pro-tips and principles to stay out of tr
 
 **Allow Filtering**: If you're tempted to use Allow Filtering in production, see the advice for Secondary Indexes above.
 
-**Batche**s: Batches solve a different problem in Cassandra than they do in relational databases. Use them to get an atomic operation for a single PK across multiple tables. Do NOT use them to batch large numbers of operations assuming Cassandra will optimize the query performance of the batch. It doesn't work that way. Use batches appropriately or not at all.
+**Batches**: Batches solve a different problem in Cassandra than they do in relational databases. Use them to get an atomic operation for a single PK across multiple tables. Do NOT use them to batch large numbers of operations assuming Cassandra will optimize the query performance of the batch. It doesn't work that way. Use batches appropriately or not at all.
 
 
 ----------
@@ -471,24 +471,24 @@ CREATE TABLE amazon.metadata (
 
 So what are things you can do? 
 
-*Filter queries*: These are awesome because the result set gets cached in memory. 
+**Filter queries**: These are awesome because the result set gets cached in memory. 
 ```
 SELECT * FROM amazon.metadata WHERE solr_query='{"q":"title:Noir~", "fq":"categories:Books", "sort":"title asc"}' limit 10; 
 ```
-*Faceting*: Get counts of fields 
+**Faceting**: Get counts of fields 
 
 ```
 SELECT * FROM amazon.metadata WHERE solr_query='{"q":"title:Noir~", "facet":{"field":"categories"}}' limit 10; 
 ```
-*Geospatial Searches*: Supports box and radius
+**Geospatial Searches**: Supports box and radius
 ```
 SELECT * FROM amazon.clicks WHERE solr_query='{"q":"asin:*", "fq":"+{!geofilt pt=\"37.7484,-122.4156\" sfield=location d=1}"}' limit 10; 
 ```
-*Joins*: Not your relational joins. These queries 'borrow' indexes from other tables to add filter logic. These are fast! 
+**Joins**: Not your relational joins. These queries 'borrow' indexes from other tables to add filter logic. These are fast! 
 ```
 SELECT * FROM amazon.metadata WHERE solr_query='{"q":"*:*", "fq":"{!join from=asin to=asin force=true fromIndex=amazon.clicks}area_code:415"}' limit 5; 
 ```
-*Fun all in one* 
+**Fun all in one**
 ```
 SELECT * FROM amazon.metadata WHERE solr_query='{"q":"*:*", "facet":{"field":"categories"}, "fq":"{!join from=asin to=asin force=true fromIndex=amazon.clicks}area_code:415"}' limit 5;
 ```
@@ -502,35 +502,42 @@ Want to see a really cool example of a live DSE Search app? Check out [KillrVide
 Hands On DSE Analytics
 --------------------
 
-Spark is general cluster compute engine. You can think of it in two pieces: **Streaming** and **Batch**. **Streaming** is the processing of incoming data (in micro batches) before it gets written to Cassandra (or any database). **Batch** includes both data crunching code and **SparkSQL**, a hive compliant SQL abstraction for **Batch** jobs. 
+Spark is general cluster compute engine. You can think of it in two pieces: **Streaming** and **Batch**. 
+**Streaming** is the processing of incoming data (in micro batches) before it gets written to Cassandra (or any database). 
+**Batch** includes both data crunching code and **SparkSQL**, a hive compliant SQL abstraction for **Batch** jobs. 
 
 It's a little tricky to have an entire class run streaming operations on a single cluster, so if you're interested in dissecting a full scale streaming app, check out [THIS git](https://github.com/retroryan/SparkAtScale).  
 
->Spark has a REPL we can play in. To make things easy, we'll use the SQL REPL:
+>Spark has a REPL we can play in. But to make things easy, we'll use the SQL REPL:
 
 ```dse spark-sql --conf spark.ui.port=<Pick a random 4 digit number> --conf spark.cores.max=1```
 
 >Notice the spark.ui.port flag - Because we are on a shared cluster, we need to specify a radom port so we don't clash with other users. We're also setting max cores = 1 or else one job will hog all the resources. 
 
-Try some CQL commands
-
-```use <your keyspace>;```
-```SELECT * FROM <your table> WHERE...;```
-
-And something not too familiar in CQL...
-```SELECT sum(price) FROM <your table>...;```
-
-Let's try having some fun on that Amazon data:
+Try some unfamiliar CQL commands on that Amazon data - like a sum on a column:
 
 ```
-SELECT sum(price) FROM metadata;
+use amazon;
+spark-sql> SELECT sum(price) FROM metadata;
+140431.25000000006
 ```
+Try a join on two tables:
 ```
 SELECT m.title, c.city FROM metadata m JOIN clicks c ON m.asin=c.asin;
+Major Legal Systems in the World Today: An Introduction to the Comparative Study of Law	San Francisco
+Major Legal Systems in the World Today: An Introduction to the Comparative Study of Law	San Francisco
+Major Legal Systems in the World Today: An Introduction to the Comparative Study of Law	San Francisco
+...
+Major Legal Systems in the World Today: An Introduction to the Comparative Study of Law	San Francisco
+Major Legal Systems in the World Today: An Introduction to the Comparative Study of Law	South San Francisco
+Major Legal Systems in the World Today: An Introduction to the Comparative Study of Law	San Francisco
 ```
+Sums and groups:
 ```
 SELECT asin, sum(price) AS max_price FROM metadata GROUP BY asin ORDER BY max_price DESC limit 1;
+B0002GYI5A      899.0
 ```
+
 ----------
 
 
