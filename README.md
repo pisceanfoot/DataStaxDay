@@ -348,10 +348,12 @@ Request complete | 2016-06-02 08:13:54.028370 |  172.31.30.32 |          16370
 
 Let's try the **SELECT** statement again. Any changes in latency? 
 
->Keep in mind that our dataset is so small, it's sitting in memory on all nodes. With larger datasets that spill to disk, the latency cost become much more drastic. 
+>Keep in mind that our dataset is so small, it's sitting in memory on all nodes. With larger datasets that spill to disk, the latency cost become much more drastic.
+
 ```
 Request complete | 2016-06-02 08:17:55.348393 |  172.31.30.32 |           4393
 ```
+
 This looks much better now doesn't it? **LOCAL_QUORUM** is the most commonly used consistency level among developers. It provides a good level of performance and a moderate amount of consistency. That being said, many use cases can warrant  **CL=LOCAL_ONE**. 
 
 For more detailed classed on data modeling, consistency, and Cassandra 101, check out the free classes at the [DataStax Academy](www.academy.datastax.com) website. 
@@ -373,15 +375,76 @@ dsetool create_core <yourkeyspace>.sales generateResources=true reindex=true
 
 This by default will map Cassandra types to Solr types for you. Anyone familiar with Solr knows that there's a REST API for querying data. In DSE Search, we embed that into CQL so you can take advantage of all the goodness CQL brings. Let's give it a shot. 
 
+Run the following commands in cqlsh:
 ```
-SELECT * FROM <keyspace>.<table> WHERE solr_query=‘{“q”:”column:*”}’;
-
-SELECT * FROM <keyspace>.sales WHERE solr_query='{"q":”name:marc", "fq":”item:*pple*", "sort":”product:asc"}’; 
+select * from sales WHERE solr_query='{"q":"name: kunal"}';
 ```
-> For your reference, [here's the doc](http://docs.datastax.com/en/datastax_enterprise/4.8/datastax_enterprise/srch/srchCql.html?scroll=srchCQL__srchSolrTokenExp) that shows some of things you can do
 
-OK! Time to work with some more interesting data. Meet Amazon book sales data:
->Note: This data is already in the DB, if you want to try it at home, [CLICK ME](https://github.com/Marcinthecloud/Solr-Amazon-Book-Demo). 
+Output should be like this:
+```
+ name  | time     | item                      | price | solr_query
+-------+----------+---------------------------+-------+------------
+ kunal | 20150207 | Jimi Hendrix Stratocaster |   899 |       null
+ kunal | 20150205 |               Apple Watch |   299 |       null
+ kunal | 20150204 |                Apple iPad |   999 |       null
+```
+
+Let's try a filter query to return only the items from Apple: 
+```
+select * from sales WHERE solr_query='{"q":"name:kunal", "fq":"item:*pple*"}'; 
+
+ name  | time     | item        | price | solr_query
+-------+----------+-------------+-------+------------
+ kunal | 20150205 | Apple Watch |   299 |       null
+ kunal | 20150204 |  Apple iPad |   999 |       null
+```
+
+We can control how the data is sorted based on a column value:
+```
+select * from sales WHERE solr_query='{"q":"name:kunal", "fq":"item:*pple*", "sort":"price desc"}';
+
+ name  | time     | item        | price | solr_query
+-------+----------+-------------+-------+------------
+ kunal | 20150204 |  Apple iPad |   999 |       null
+ kunal | 20150205 | Apple Watch |   299 |       null
+ ```
+ 
+> For your reference, [here's the doc](http://docs.datastax.com/en/datastax_enterprise/4.8/datastax_enterprise/srch/srchCql.html?scroll=srchCQL__srchSolrTokenExp) that shows some of things you can do.
+
+OK! Time to work with some more interesting data. Meet Amazon book sales data.
+
+1. Install pip:
+```
+sudo apt-get install gcc python-dev
+sudo apt-get install python-pip python-dev build-essential 
+sudo pip install --upgrade pip
+sudo pip install --upgrade virtualenv 
+```
+
+2. Install the Python Cassandra Driver:
+```
+sudo pip install cassandra-driver
+``` 
+2. Run solr_dataloader.py
+  * This will create the CQL schemas and load the data 
+3. Run create_core.sh 
+  * This will generate Solr cores and index the data
+
+
+#####Examples Queries: 
+
+```
+SELECT * FROM amazon.metadata WHERE solr_query='{"q":"title:Noir~", "fq":"categories:Books", "sort":"title asc"}'  limit 10;
+
+SELECT * FROM amazon.metadata WHERE solr_query='{"q":"title:Noir~", "facet":{"field":"categories"}}'  limit 10;
+
+SELECT * FROM amazon.clicks WHERE solr_query='{"q":"asin:*", "fq":"+{!geofilt pt=\"37.7484,-122.4156\" sfield=location d=1}"}' limit 10;
+
+SELECT * FROM amazon.metadata WHERE solr_query='{"q":"*:*", "fq":"{!join from=asin to=asin force=true fromIndex=amazon.clicks}area_code:415"}' limit 5;
+
+SELECT * FROM amazon.metadata WHERE solr_query='{"q":"*:*", "facet":{"field":"categories"}, "fq":"{!join from=asin to=asin force=true fromIndex=amazon.clicks}area_code:415"}' limit 5;
+```
+
 
 Click stream data:
 ```
