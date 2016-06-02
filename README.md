@@ -151,7 +151,7 @@ Here's how to do the exercise...
 
 1) Use the CQL script below to create the tables. You'll notice that all the tables are exactly the same except for the primary key definition.
 ```
-create keyspace if not exists primary_keys_ks with replication = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };
+create keyspace if not exists primary_keys_ks with replication = { 'class' : 'SimpleStrategy', 'replication_factor' : 3 };
 
 use primary_keys_ks;
 
@@ -305,7 +305,7 @@ Hands On Cassandra Consistency
 
 #### Let's play with consistency!
 
-Consistency in Cassandra refers to the number of acknowledgements replica nodes need to send to the coordinator for an operation to be successful while also providing good data (avoiding dirty reads). 
+Consistency in Cassandra refers to the number of acknowledgements that replica nodes need to send to the coordinator for an operation to be considered successful whilst also providing good data (avoiding dirty reads). 
 
 We recommend a ** default replication factor of 3 and consistency level of LOCAL_QUORUM as a starting point**. You will almost always get the performance you need with these default settings.
 
@@ -322,8 +322,12 @@ Let's give it a shot.
 
 >Any query will now be traced. **Consistency** of all means all 3 replicas need to respond to a given request (read OR write) to be successful. Let's do a **SELECT** statement to see the effects.
 
+Set your keyspace created earlier as the default keyspace:
 ```
-SELECT * FROM <yourkeyspace>.sales where name='<enter name>';
+use <yourkeyspace>;
+```
+```
+SELECT * FROM sales where name='kunal';
 ```
 
 How did we do? 
