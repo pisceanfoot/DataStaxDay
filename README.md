@@ -420,14 +420,13 @@ sudo apt-get install python-pip python-dev build-essential
 sudo pip install --upgrade pip
 sudo pip install --upgrade virtualenv 
 ```
-
 2. Install the Python Cassandra Driver:
 ```
 sudo pip install cassandra-driver
 ``` 
-2. Run solr_dataloader.py
+3. Run solr_dataloader.py
   * This will create the CQL schemas and load the data 
-3. Run create_core.sh 
+4. Run create_core.sh 
   * This will generate Solr cores and index the data
 
 
