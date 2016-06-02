@@ -317,46 +317,41 @@ Let's give it a shot.
 
 **In CQLSH**:
 
-```tracing on```
-```consistency all```
+```
+tracing on
+consistency all
+```
 
->Any query will now be traced. **Consistency** of all means all 3 replicas need to respond to a given request (read OR write) to be successful. Let's do a **SELECT** statement to see the effects.
+>Any query will now be traced. Cassandra provides a description of each step it takes to satisfy the request, the names of nodes that are affected, the time for each step, and the total time for the request.
+>**Consistency** level "all" means all 3 replicas need to respond to a given request (read OR write) to be successful. Let's do a **SELECT** statement to see the effects.
 
 Set your keyspace created earlier as the default keyspace:
 ```
 use <yourkeyspace>;
 ```
+Retrieve all rows where name="kunal":
 ```
 SELECT * FROM sales where name='kunal';
 ```
 
-How did we do? 
+How did we do? We returned three records. Total elapsed time for the request on our 3-node cluster was 16370 microseconds. 
+
+```
+Request complete | 2016-06-02 08:13:54.028370 |  172.31.30.32 |          16370
+```
 
 **Let's compare a lower consistency level:**
+
 ```consistency local_quorum```
 >Quorum means majority: RF/2 + 1. In our case, 3/2 = 1 + 1 = 2. At least 2 nodes need to acknowledge the request. 
 
 Let's try the **SELECT** statement again. Any changes in latency? 
+
 >Keep in mind that our dataset is so small, it's sitting in memory on all nodes. With larger datasets that spill to disk, the latency cost become much more drastic. 
-
-**Let's try this again** but this time, let's pay attention to what's happening in the trace
 ```
-consistency local_all
+Request complete | 2016-06-02 08:17:55.348393 |  172.31.30.32 |           4393
 ```
-```
-SELECT * FROM <yourkeyspace>.sales where name='<enter name>';
-```
-
-Take a look at the trace output. Look at all queries and contact points. What you're witnessing is both the beauty and challenge of distributed systems. 
-
-```
-consistency local_quorum
-```
-```
-SELECT * FROM <yourkeyspace>.sales where name='<enter name>';
-```
-
->This looks much better now doesn't it? **LOCAL_QUORUM** is the most commonly used consistency level among developers. It provides a good level of performance and a moderate amount of consistency. That being said, many use cases can warrant  **CL=LOCAL_ONE**. 
+This looks much better now doesn't it? **LOCAL_QUORUM** is the most commonly used consistency level among developers. It provides a good level of performance and a moderate amount of consistency. That being said, many use cases can warrant  **CL=LOCAL_ONE**. 
 
 For more detailed classed on data modeling, consistency, and Cassandra 101, check out the free classes at the [DataStax Academy](www.academy.datastax.com) website. 
 
@@ -365,7 +360,7 @@ For more detailed classed on data modeling, consistency, and Cassandra 101, chec
 
 Hands On DSE Search
 -------------
-DSE Search is awesome. You can configure which columns of which Cassandra tables you'd like indexed in **lucene** format to make extended searches more efficient while enabling features such as text search and geospatial search. 
+DSE Search is awesome. You can configure which columns of which Cassandra tables you'd like indexed in **lucene** format to make extended searches more efficient whilst enabling features such as text search and geospatial search. 
 
 Let's start off by indexing the tables we've already made. Here's where the dsetool really comes in handy:
 
