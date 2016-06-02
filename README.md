@@ -47,7 +47,8 @@ In this example the response tells us that the Spark Master is running on intern
 
 
 #### Connecting to the cluster from DevCenter
-If you've installed DevCenter you can use it to run queries, view schemas, manage scripts etc. To access your cluster:
+If you've installed DevCenter you can use it to run queries, view schemas, manage scripts etc. 
+To access your cluster:
 - Simply add a new connection
 - Enter a name for your connection
 - Enter any of the external IP's provided as a contact host
