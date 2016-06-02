@@ -12,7 +12,12 @@ Hands On Setup
 
 We have a 3 node cluster for you to play with! The cluster is currently running in both **search** and **analytics** mode so you can take advantage of both Spark and Solr on your Cassandra data. 
 
-You'll be given the following connection details when the cluster starts:
+You'll be given the connection details when the cluster starts.
+
+To SSH into the cluster connect as root using the password provided and the external address of one of the nodes:
+```
+ssh root@[ipaddress] 
+```
 
 NB an external address is the one you use to connect from outside the cluster. The internal address is the one that the machines use to communicate with each other
 
@@ -32,18 +37,14 @@ dsetool sparkmaster
 spark://172.31.24.137:7077
 ```
 
-In this example the response tells us that the Spark Master is running on internal address 172.31.24.137 - so we need to use the corresponding external address to acccess it from a browser on a client machine.
+In this example the response tells us that the Spark Master is running on internal address 172.31.24.137 - so we need to use the corresponding external address 54.213.132.207 to acccess it from a browser on a client machine.
 
-To SSH into the cluster connect as root using the password provided:
-```
-ssh root@[ipaddress] 
-```
 
 #### Connecting to the cluster from DevCenter
 - Simply add a new connection
 - Enter a name for your connection
-- Enter any of the ip's from above as a contact host
-- Profit. 
+- Enter any of the external IP's from above as a contact host
+- Wait a few seconds for the connection to complete and the keyspace and table details for the database will be displayed
 
 ![DevCenter How To](http://i.imgur.com/8zwzmDj.png)
 
@@ -54,14 +55,21 @@ ssh root@[ipaddress]
 Hands On DSE Cassandra 
 -------------------
 
-Cassandra is the brains of DSE. It's an awesome storage engine that handles replication, availability, structuring, and of course, storing the data at lightning speeds. It's important to get yourself acquainted with the Cassandra to fully utilize the power of the DSE Stack. 
+Cassandra is the brains of DSE. It's an awesome storage engine that handles replication, availability, structuring, and of course, storing the data at lightning speeds. It's important to get yourself acquainted with Cassandra to fully utilize the power of the DSE Stack. 
 
 #### Creating a Keyspace, Table, and Queries 
 
-Try the following CQL commands in DevCenter. In addition to DevCenter, you can also use **CQLSH** as an interactive command line tool for CQL access to Cassandra. Start CQLSH like this:
+You can run the following CQL commands in DevCenter or you can use **cqlsh** as an interactive command line tool for CQL access to Cassandra. For this demo I'll be using cqlsh.
 
-```cqlsh <<private ip address>>``` 
-> Make sure to replace 127.0.0.1 with the IP of the respective node 
+Start CQLSH like this from the command prompt on one of the nodes in the cluster:
+
+```
+cqlsh <private ip address>
+``` 
+or
+```
+cqlsh <node name>
+```
 
 Let's make our first Cassandra Keyspace! 
 
@@ -69,7 +77,12 @@ Let's make our first Cassandra Keyspace!
 CREATE KEYSPACE <Enter your name> WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3 };
 ```
 
-And just like that, any data within any table you create under your keyspace will automatically be replicated 3 times. Let's keep going and create ourselves a table. You can follow my example or be a rebel and roll your own. 
+And just like that, any data within any table you create under your keyspace will automatically be replicated 3 times.
+
+> **Hint** - SimpleStrategy is OK for a cluster using a single data center, but in the real world with multiple datacenters you would use the ```NetworkTopologyStrategy``` replication strategy. In fact, even if you start out on your development path with just a single data center, if theres even a chance that you might go to multiple data centers in the future then you should use NetworkTopologyStrategy from the outset.
+
+Let's keep going and create ourselves a table.
+
 
 ```
 CREATE TABLE <yourkeyspace>.sales (
