@@ -14,7 +14,7 @@ We have a 3 node cluster for you to play with! The cluster is currently running 
 
 You'll be given the connection details when the cluster starts.
 
-To SSH into the cluster connect as root using the password provided and the external address of one of the nodes:
+To SSH into the cluster, connect as root using the password provided and the external address of one of the nodes:
 ```
 ssh root@[ipaddress] 
 ```
