@@ -420,7 +420,7 @@ sudo apt-get install python-pip python-dev build-essential
 sudo pip install --upgrade pip
 sudo pip install --upgrade virtualenv 
 ```
-2. Install the Python Cassandra Driver:
+2. Install the Python Cassandra Driver (note - this might take some time on smaller machines):
 ```
 sudo pip install cassandra-driver
 ``` 
@@ -430,19 +430,7 @@ sudo pip install cassandra-driver
   * This will generate Solr cores and index the data
 
 
-#####Examples Queries: 
-
-```
-SELECT * FROM amazon.metadata WHERE solr_query='{"q":"title:Noir~", "fq":"categories:Books", "sort":"title asc"}'  limit 10;
-
-SELECT * FROM amazon.metadata WHERE solr_query='{"q":"title:Noir~", "facet":{"field":"categories"}}'  limit 10;
-
-SELECT * FROM amazon.clicks WHERE solr_query='{"q":"asin:*", "fq":"+{!geofilt pt=\"37.7484,-122.4156\" sfield=location d=1}"}' limit 10;
-
-SELECT * FROM amazon.metadata WHERE solr_query='{"q":"*:*", "fq":"{!join from=asin to=asin force=true fromIndex=amazon.clicks}area_code:415"}' limit 5;
-
-SELECT * FROM amazon.metadata WHERE solr_query='{"q":"*:*", "facet":{"field":"categories"}, "fq":"{!join from=asin to=asin force=true fromIndex=amazon.clicks}area_code:415"}' limit 5;
-```
+The Amazon data model includes the following tables:
 
 
 Click stream data:
@@ -481,29 +469,31 @@ CREATE TABLE amazon.metadata (
 );
 ```
 
-> Example page of what's in the DB http://www.amazon.com/Science-Closer-Look-Grade-6/dp/0022841393/ref=sr_1_1?ie=UTF8&qid=1454964627&sr=8-1&keywords=0022841393
-
 So what are things you can do? 
->Filter queries: These are awesome because the result set gets cached in memory. 
+
+*Filter queries*: These are awesome because the result set gets cached in memory. 
 ```
 SELECT * FROM amazon.metadata WHERE solr_query='{"q":"title:Noir~", "fq":"categories:Books", "sort":"title asc"}' limit 10; 
 ```
-> Faceting: Get counts of fields 
+*Faceting*: Get counts of fields 
+
 ```
 SELECT * FROM amazon.metadata WHERE solr_query='{"q":"title:Noir~", "facet":{"field":"categories"}}' limit 10; 
 ```
-> Geospatial Searches: Supports box and radius
+*Geospatial Searches*: Supports box and radius
 ```
 SELECT * FROM amazon.clicks WHERE solr_query='{"q":"asin:*", "fq":"+{!geofilt pt=\"37.7484,-122.4156\" sfield=location d=1}"}' limit 10; 
 ```
-> Joins: Not your relational joins. These queries 'borrow' indexes from other tables to add filter logic. These are fast! 
+*Joins*: Not your relational joins. These queries 'borrow' indexes from other tables to add filter logic. These are fast! 
 ```
 SELECT * FROM amazon.metadata WHERE solr_query='{"q":"*:*", "fq":"{!join from=asin to=asin force=true fromIndex=amazon.clicks}area_code:415"}' limit 5; 
 ```
-> Fun all in one. 
+*Fun all in one* 
 ```
 SELECT * FROM amazon.metadata WHERE solr_query='{"q":"*:*", "facet":{"field":"categories"}, "fq":"{!join from=asin to=asin force=true fromIndex=amazon.clicks}area_code:415"}' limit 5;
 ```
+> Check this example page of what's in the DB http://www.amazon.com/Science-Closer-Look-Grade-6/dp/0022841393/ref=sr_1_1?ie=UTF8&qid=1454964627&sr=8-1&keywords=0022841393
+
 Want to see a really cool example of a live DSE Search app? Check out [KillrVideo](http://www.killrvideo.com/) and its [Git](https://github.com/luketillman/killrvideo-csharp) to see it in action. 
 
 ----------
