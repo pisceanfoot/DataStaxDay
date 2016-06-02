@@ -80,7 +80,7 @@ ASINS = [
 
 
 KS_CREATION_STATEMENT = """
-CREATE KEYSPACE IF NOT EXISTS %s WITH replication = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };
+CREATE KEYSPACE IF NOT EXISTS %s WITH replication = { 'class' : 'SimpleStrategy', 'replication_factor' : 3 };
 """  % (KEYSPACE)
 
 META_CF_CREATION_STATEMENT = """
