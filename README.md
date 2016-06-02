@@ -59,9 +59,9 @@ Cassandra is the brains of DSE. It's an awesome storage engine that handles repl
 
 #### Creating a Keyspace, Table, and Queries 
 
-You can run the following CQL commands in DevCenter or you can use **cqlsh** as an interactive command line tool for CQL access to Cassandra. For this demo I'll be using cqlsh.
+You can run the following CQL commands in DevCenter or you can use **cqlsh** as an interactive command line tool for CQL access to Cassandra. 
 
-Start CQLSH like this from the command prompt on one of the nodes in the cluster:
+Start cqlsh like this from the command prompt on one of the nodes in the cluster:
 
 ```
 cqlsh <private ip address>
@@ -106,10 +106,30 @@ INSERT INTO <yourkeyspace>.sales (name, time, item, price) VALUES ('kunal', 2015
 INSERT INTO <yourkeyspace>.sales (name, time, item, price) VALUES ('rich', 20150208, 'Santa Cruz Tallboy 29er', 4599.00);
 ```
 
-And to retrieve it:
+At the moment we're prefixing the keyspace name to the table name in our CQL commands e.g. ```<yourkeyspace>.sales```.
+
+Let's make it a little easier - we can set our ***default*** keyspace so that we dont need to type it every time.
 
 ```
-SELECT * FROM <keyspace>.sales where name='kunal' AND time >=20150227 ;
+use <yourkeyspace>;
+```
+You can check the tables that are in that keyspace like this:
+```
+describe tables
+```
+> Of course, if there are tables with the same name in different keyspaces it may be wiser to continue to use a keyspace prefix to avoid inadvertently modifying the data in the wrong table!
+
+We can check how many rows there are in our table after the insert of five rows:
+```
+select count(*) from sales;
+```
+
+> Be careful with ```count(*)``` - it will scan the entire cluster. This wouldnt be a good idea in a big cluster with millions or billions of rows!
+
+To retrieve data:
+
+```
+SELECT * FROM sales where name='kunal' AND time >=20150207 ;
 ```
 >See what I did there? You can do range scans on clustering keys! Give it a try.
 
