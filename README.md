@@ -518,12 +518,18 @@ Try some unfamiliar CQL commands on that Amazon data - like a sum on a column:
 
 ```
 use amazon;
-spark-sql> SELECT sum(price) FROM metadata;
+SELECT sum(price) FROM metadata;
+```
+You should see the following output:
+```
 140431.25000000006
 ```
 Try a join on two tables:
 ```
 SELECT m.title, c.city FROM metadata m JOIN clicks c ON m.asin=c.asin;
+```
+Output for example:
+```
 Major Legal Systems in the World Today: An Introduction to the Comparative Study of Law	San Francisco
 Major Legal Systems in the World Today: An Introduction to the Comparative Study of Law	San Francisco
 Major Legal Systems in the World Today: An Introduction to the Comparative Study of Law	San Francisco
@@ -535,6 +541,9 @@ Major Legal Systems in the World Today: An Introduction to the Comparative Study
 Sums and groups:
 ```
 SELECT asin, sum(price) AS max_price FROM metadata GROUP BY asin ORDER BY max_price DESC limit 1;
+```
+Output:
+```
 B0002GYI5A      899.0
 ```
 
@@ -566,6 +575,7 @@ val df_albums = sqlContext.read.format("com.databricks.spark.csv").option("heade
 ```
 >Dataframes were introduced in Spark 1.3 and are a more efficient means of managing and analysing data than traditional Spark RDD's - you can read more about them [here](https://databricks.com/blog/2015/02/17/introducing-dataframes-in-spark-for-large-scale-data-science.html) and a good explanation [here](http://stackoverflow.com/questions/31508083/difference-between-dataframe-and-rdd-in-spark) 
 
+We can view the schema of a DataFrame:
 ```
 scala> df_albums.printSchema()
 root
@@ -663,6 +673,7 @@ scala> df_albums.groupBy("year").count().show()
 We can use the DataFrame to create an in-memory Spark SQL table:
 ```
 df_albums.registerTempTable("spark_albums_table")
+
 sqlContext.sql("SELECT * FROM spark_albums_table").show
 +----------+--------------------+----+--------------+-------+--------+
 |    artist|               album|year|       country|quality|  status|
@@ -720,7 +731,7 @@ scala> sqlContext.sql("SELECT country,count(*) as nb FROM spark_albums_table gro
 ```
 To exit the REPL type ```exit```
 
-You can see a great demo of running htese steps inside the Zeppelin Notebook [here](https://github.com/victorcouste/zeppelin-spark-cassandra-demo/)
+You can see a great demo of running thse steps inside the Zeppelin Notebook [here](https://github.com/victorcouste/zeppelin-spark-cassandra-demo/)
 
 
 ----------
@@ -755,10 +766,9 @@ nodetool tpstats //shows thread pool status - critical for ops
 ```
 
 **dsetool Examples:**
+We've previously used the dsetool command to create Solr cores. We can also use it to obtain a cluster status report:
 ```
 dsetool status //shows current status of cluster, including DSE features
-
-dsetool create_core //will create a Solr schema on Cassandra data for Search
 ```
 
 **The main log you'll be taking a look at for troubleshooting outside of OpsCenter:**
