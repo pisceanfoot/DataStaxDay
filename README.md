@@ -19,7 +19,13 @@ To SSH into the cluster connect as root using the password provided and the exte
 ssh root@[ipaddress] 
 ```
 
-NB an external address is the one you use to connect from outside the cluster. The internal address is the one that the machines use to communicate with each other
+**NB** an external address is the one you use to connect to a node from outside the cluster. An internal address is the one that the machines use to communicate with each other.
+
+Note down your IP addresses. You will be given the external addresses of the nodes in your cluster. You can obtain the internal addresses via the hosts file on any of the nodes e.g.
+```
+cat /etc/hosts
+```
+In this example we'll use these IP addresses:
 
 * Node 0 IP adress - external and internal e.g. 54.218.62.199, 172.31.30.32
 * Node 1 IP adress - external and internal e.g. 54.213.132.207, 172.31.24.137
@@ -37,14 +43,15 @@ dsetool sparkmaster
 spark://172.31.24.137:7077
 ```
 
-In this example the response tells us that the Spark Master is running on internal address 172.31.24.137 - so we need to use the corresponding external address 54.213.132.207 to acccess it from a browser on a client machine.
+In this example the response tells us that the Spark Master is running on internal address 172.31.24.137 - so we need to use the corresponding external address http://54.213.132.207:7080 to acccess it from a browser on a client machine.
 
 
 #### Connecting to the cluster from DevCenter
+If you've installed DevCenter you can use it to run queries, view schemas, manage scripts etc. To access your cluster:
 - Simply add a new connection
 - Enter a name for your connection
-- Enter any of the external IP's from above as a contact host
-- Wait a few seconds for the connection to complete and the keyspace and table details for the database will be displayed
+- Enter any of the external IP's provided as a contact host
+- Wait a few seconds for the connection to complete, and the keyspace and table details for the database will be displayed
 
 ![DevCenter How To](http://i.imgur.com/8zwzmDj.png)
 
@@ -79,7 +86,7 @@ CREATE KEYSPACE <Enter your name> WITH replication = {'class': 'SimpleStrategy',
 
 And just like that, any data within any table you create under your keyspace will automatically be replicated 3 times.
 
-> **Hint** - SimpleStrategy is OK for a cluster using a single data center, but in the real world with multiple datacenters you would use the ```NetworkTopologyStrategy``` replication strategy. In fact, even if you start out on your development path with just a single data center, if theres even a chance that you might go to multiple data centers in the future then you should use NetworkTopologyStrategy from the outset.
+> **Hint** - SimpleStrategy is OK for a cluster using a single data center, but in the real world with multiple datacenters you would use the ```NetworkTopologyStrategy``` replication strategy. In fact, even if you start out on your development path with just a single data center, if there is even a chance that you might go to multiple data centers in the future, then you should use NetworkTopologyStrategy from the outset.
 
 Let's keep going and create ourselves a table.
 
@@ -108,7 +115,7 @@ INSERT INTO <yourkeyspace>.sales (name, time, item, price) VALUES ('rich', 20150
 
 At the moment we're prefixing the keyspace name to the table name in our CQL commands e.g. ```<yourkeyspace>.sales```.
 
-Let's make it a little easier - we can set our ***default*** keyspace so that we dont need to type it every time.
+Let's make it a little easier - we can set our ***default*** keyspace so that we dont need to type it in every time.
 
 ```
 use <yourkeyspace>;
@@ -117,7 +124,7 @@ You can check the tables that are in that keyspace like this:
 ```
 describe tables
 ```
-> Of course, if there are tables with the same name in different keyspaces it may be wiser to continue to use a keyspace prefix to avoid inadvertently modifying the data in the wrong table!
+> Of course, if there are tables with the **same name** in **other** keyspaces it may be wiser to continue to use a keyspace prefix to avoid inadvertently modifying the data in the wrong table!
 
 We can check how many rows there are in our table after the insert of five rows:
 ```
@@ -132,6 +139,7 @@ To retrieve data:
 SELECT * FROM sales where name='kunal' AND time >=20150207 ;
 ```
 >See what I did there? You can do range scans on clustering keys! Give it a try.
+>We will look at partition keys and clustering keys in the next section
 
 ----------
 
@@ -313,8 +321,6 @@ In some cases, developers find Cassandra's replication fast enough to warrant lo
 
 Let's give it a shot. 
 
->During this exercise, I'll be taking down nodes so you can see the CAP theorem in action. We'll be using CQLSH for this one. 
-
 **In CQLSH**:
 
 ```
@@ -330,7 +336,7 @@ Set your keyspace created earlier as the default keyspace:
 ```
 use <yourkeyspace>;
 ```
-Retrieve all rows where name="kunal":
+Retrieve all rows from the sales table where name="kunal":
 ```
 SELECT * FROM sales where name='kunal';
 ```
@@ -413,21 +419,27 @@ select * from sales WHERE solr_query='{"q":"name:kunal", "fq":"item:*pple*", "so
 
 OK! Time to work with some more interesting data. Meet Amazon book sales data.
 
-1. Install pip:
+Install pip
+-----------
 ```
 sudo apt-get install gcc python-dev
 sudo apt-get install python-pip python-dev build-essential 
 sudo pip install --upgrade pip
 sudo pip install --upgrade virtualenv 
 ```
-2. Install the Python Cassandra Driver (note - this might take some time on smaller machines):
+Install the Python Cassandra Driver 
+------------------------------------
+>This might take some time on less powerful machines
 ```
 sudo pip install cassandra-driver
 ``` 
-3. Run solr_dataloader.py
-  * This will create the CQL schemas and load the data 
-4. Run create_core.sh 
-  * This will generate Solr cores and index the data
+Run solr_dataloader.py
+----------------------
+This will create the CQL schemas and load the data 
+
+Run create_core.sh
+------------------
+This will generate Solr cores and index the data
 
 
 The Amazon data model includes the following tables:
@@ -475,24 +487,26 @@ So what are things you can do?
 ```
 SELECT * FROM amazon.metadata WHERE solr_query='{"q":"title:Noir~", "fq":"categories:Books", "sort":"title asc"}' limit 10; 
 ```
-**Faceting**: Get counts of fields 
 
+**Faceting**: Get counts of fields 
 ```
 SELECT * FROM amazon.metadata WHERE solr_query='{"q":"title:Noir~", "facet":{"field":"categories"}}' limit 10; 
 ```
+
 **Geospatial Searches**: Supports box and radius
 ```
 SELECT * FROM amazon.clicks WHERE solr_query='{"q":"asin:*", "fq":"+{!geofilt pt=\"37.7484,-122.4156\" sfield=location d=1}"}' limit 10; 
 ```
+
 **Joins**: Not your relational joins. These queries 'borrow' indexes from other tables to add filter logic. These are fast! 
 ```
 SELECT * FROM amazon.metadata WHERE solr_query='{"q":"*:*", "fq":"{!join from=asin to=asin force=true fromIndex=amazon.clicks}area_code:415"}' limit 5; 
 ```
+
 **Fun all in one**
 ```
 SELECT * FROM amazon.metadata WHERE solr_query='{"q":"*:*", "facet":{"field":"categories"}, "fq":"{!join from=asin to=asin force=true fromIndex=amazon.clicks}area_code:415"}' limit 5;
 ```
-> Check this example page of what's in the DB http://www.amazon.com/Science-Closer-Look-Grade-6/dp/0022841393/ref=sr_1_1?ie=UTF8&qid=1454964627&sr=8-1&keywords=0022841393
 
 Want to see a really cool example of a live DSE Search app? Check out [KillrVideo](http://www.killrvideo.com/) and its [Git](https://github.com/luketillman/killrvideo-csharp) to see it in action. 
 
@@ -547,7 +561,7 @@ Output:
 B0002GYI5A      899.0
 ```
 
-Let's try an excercise using the Spark REPL.
+Now let's try an excercise using the Spark REPL.
 We will load a csv file using Spark workers on the three nodes. To do this we would usually use a distributed file system like S3 or CFS that is visible to all three nodes. For this exercise we can simply copy the file to the same location on all three nodes.
 
 In the repo directory:
