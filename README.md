@@ -508,7 +508,7 @@ Spark is general cluster compute engine. You can think of it in two pieces: **St
 
 It's a little tricky to have an entire class run streaming operations on a single cluster, so if you're interested in dissecting a full scale streaming app, check out [THIS git](https://github.com/retroryan/SparkAtScale).  
 
->Spark has a REPL we can play in. But to make things easy, we'll use the SQL REPL:
+>Spark has a REPL we can play in. But to make things easy, first we'll use the Spark SQL REPL:
 
 ```dse spark-sql --conf spark.ui.port=<Pick a random 4 digit number> --conf spark.cores.max=1```
 
@@ -538,6 +538,191 @@ SELECT asin, sum(price) AS max_price FROM metadata GROUP BY asin ORDER BY max_pr
 B0002GYI5A      899.0
 ```
 
+Let's try an excercise using the Spark REPL.
+We will load a csv file using Spark workers on the three nodes. To do this we would usually use a distributed file system like S3 or CFS that is visible to all three nodes. For this exercise we can simply copy the file to the same location on all three nodes.
+
+In the repo directory:
+```
+cp albums.csv /tmp
+chmod 755 /tmp/albums.csv
+```
+
+Now we start the Spark REPL and pull in the csv reader from Databricks (after its downloaded the first time we can thereafter just use an import statement inside the REPL e.g. ```import com.databricks.spark.csv._```):
+```
+dse spark --packages com.databricks:spark-csv_2.10:1.0.3
+```
+Once inde the REPL we can run some Scala commands:
+```
+println("Spark version:"+sc.version)
+```
+We need to import SQLContext so that we can create a SQLContext:
+```
+import org.apache.spark.sql.SQLContext
+val sqlContext = new SQLContext(sc)
+```
+Now we can create a dataframe from our distributed file:
+```
+val df_albums = sqlContext.read.format("com.databricks.spark.csv").option("header", "true").load("file:///tmp/albums.csv").cache
+```
+>Dataframes were introduced in Spark 1.3 and are a more efficient means of managing and analysing data than traditional Spark RDD's - you can read more about them [here](https://databricks.com/blog/2015/02/17/introducing-dataframes-in-spark-for-large-scale-data-science.html) and a good explanation [here](http://stackoverflow.com/questions/31508083/difference-between-dataframe-and-rdd-in-spark) 
+
+```
+scala> df_albums.printSchema()
+root
+ |-- artist: string (nullable = true)
+ |-- album: string (nullable = true)
+ |-- year: string (nullable = true)
+ |-- country: string (nullable = true)
+ |-- quality: string (nullable = true)
+ |-- status: string (nullable = true)
+```
+We can display some of the records (by default the first 20):
+```
+scala> df_albums.show()
++----------+--------------------+----+--------------+-------+--------+
+|    artist|               album|year|       country|quality|  status|
++----------+--------------------+----+--------------+-------+--------+
+|Ultra Naté|Stranger Than Fic...|2001|           USA| normal|Official|
+|Ultra Naté|                Free|1997|   Netherlands| normal|Official|
+|Ultra Naté|          Is It Love|1992|           USA| normal|Official|
+|Ultra Naté|New Kind of Medicine|1998|United Kingdom| normal|Official|
+|Ultra Naté|                Free|1997|     Australia| normal|Official|
+|Ultra Naté|Free: The Mood II...|1997|       Denmark| normal|Official|
+|Ultra Naté|           Rejoicing|1991|           USA| normal|Official|
+|Ultra Naté|        Found a Cure|1998|United Kingdom| normal|Official|
+|Ultra Naté| Situation: Critical|1998|United Kingdom| normal|Official|
+|Ultra Naté|                Free|1998|  South Africa| normal|Official|
+|Ultra Naté|       Joy / Show Me|1993|           USA| normal|Official|
+|Ultra Naté|           Get It Up|2001|       Germany| normal|Official|
+|Ultra Naté|One Woman's Insanity|1993|           USA| normal|Official|
+|Ultra Naté|  Situation:Critical|1998|           USA| normal|Official|
+|Ultra Naté|              Desire|2000|       Germany| normal|Official|
+|Ultra Naté|New Kind of Medic...|1998|United Kingdom| normal|Official|
+|Ultra Naté|Blue Notes in the...|1991|           USA| normal|Official|
+|    Object|   The Ethane Asylum|2008|           USA| normal|Official|
+|    Object|  Part-Time Paranoia|2001|       Germany| normal|Official|
+|    Object| The Reflecting Skin|  -1|       Unknown| normal|Official|
++----------+--------------------+----+--------------+-------+--------+
+```
+We can FILTER the results:
+```
+scala> df_albums.filter("year > 2000").show()
++--------------------+--------------------+----+--------------+-------+--------+
+|              artist|               album|year|       country|quality|  status|
++--------------------+--------------------+----+--------------+-------+--------+
+|          Ultra Naté|Stranger Than Fic...|2001|           USA| normal|Official|
+|          Ultra Naté|           Get It Up|2001|       Germany| normal|Official|
+|              Object|   The Ethane Asylum|2008|           USA| normal|Official|
+|              Object|  Part-Time Paranoia|2001|       Germany| normal|Official|
+|              Hayden|     In Field & Town|2008|        Canada| normal|Official|
+|              Hayden|   Elk-Lake Serenade|2004|        Canada| normal|Official|
+|              Hayden|            Us Alone|2013|           USA| normal|Official|
+|              Hayden|Skyscraper Nation...|2001|        Canada| normal|Official|
+|              Hayden|Live at Convocati...|2002|           USA| normal|Official|
+|              Hayden|            Hey Love|2015|        Canada| normal|Official|
+|              Hayden|The Place Where W...|2009|        Canada| normal|Official|
+|Get Cape. Wear Ca...|I-Spy / Call Me I...|2006|United Kingdom| normal|Official|
+|Get Cape. Wear Ca...|Get Cape. Wear Ca...|2005|United Kingdom| normal|Official|
+|Get Cape. Wear Ca...|       Find the Time|2008|United Kingdom| normal|Official|
+|Get Cape. Wear Ca...|   War of the Worlds|2006|United Kingdom| normal|Official|
+|Get Cape. Wear Ca...|Searching for the...|2008|United Kingdom| normal|Official|
+|Get Cape. Wear Ca...|Get Cape. Wear Ca...|2010|United Kingdom| normal|Official|
+|Get Cape. Wear Ca...|    Keep Singing Out|2008|United Kingdom| normal|Official|
+|Get Cape. Wear Ca...|                Maps|2012|United Kingdom| normal|Official|
+|Get Cape. Wear Ca...|The Chronicles of...|2006|United Kingdom| normal|Official|
++--------------------+--------------------+----+--------------+-------+--------+
+```
+We can GROUP BY and COUNT:
+```
+scala> df_albums.groupBy("year").count().show()
++----+-----+
+|year|count|
++----+-----+
+|1917|   10|
+|1918|    6|
+|1919|    4|
+|1980|  813|
+|1981|  854|
+|1982| 1048|
+|1983|  977|
+|1984| 1018|
+|1985| 1006|
+|1986| 1087|
+|1987| 1289|
+|1988| 1327|
+|1989| 1536|
+|1920|    4|
+|1921|    1|
+|1922|    5|
+|1923|    4|
+|1924|   18|
+|1925|    6|
+|1926|    9|
++----+-----+
+```
+We can use the DataFrame to create an in-memory Spark SQL table:
+```
+df_albums.registerTempTable("spark_albums_table")
+sqlContext.sql("SELECT * FROM spark_albums_table").show
++----------+--------------------+----+--------------+-------+--------+
+|    artist|               album|year|       country|quality|  status|
++----------+--------------------+----+--------------+-------+--------+
+|Ultra Naté|Stranger Than Fic...|2001|           USA| normal|Official|
+|Ultra Naté|                Free|1997|   Netherlands| normal|Official|
+|Ultra Naté|          Is It Love|1992|           USA| normal|Official|
+|Ultra Naté|New Kind of Medicine|1998|United Kingdom| normal|Official|
+|Ultra Naté|                Free|1997|     Australia| normal|Official|
+|Ultra Naté|Free: The Mood II...|1997|       Denmark| normal|Official|
+|Ultra Naté|           Rejoicing|1991|           USA| normal|Official|
+|Ultra Naté|        Found a Cure|1998|United Kingdom| normal|Official|
+|Ultra Naté| Situation: Critical|1998|United Kingdom| normal|Official|
+|Ultra Naté|                Free|1998|  South Africa| normal|Official|
+|Ultra Naté|       Joy / Show Me|1993|           USA| normal|Official|
+|Ultra Naté|           Get It Up|2001|       Germany| normal|Official|
+|Ultra Naté|One Woman's Insanity|1993|           USA| normal|Official|
+|Ultra Naté|  Situation:Critical|1998|           USA| normal|Official|
+|Ultra Naté|              Desire|2000|       Germany| normal|Official|
+|Ultra Naté|New Kind of Medic...|1998|United Kingdom| normal|Official|
+|Ultra Naté|Blue Notes in the...|1991|           USA| normal|Official|
+|    Object|   The Ethane Asylum|2008|           USA| normal|Official|
+|    Object|  Part-Time Paranoia|2001|       Germany| normal|Official|
+|    Object| The Reflecting Skin|  -1|       Unknown| normal|Official|
++----------+--------------------+----+--------------+-------+--------+
+```
+
+And now we can perform complex SQL operations on the data in Spark memory:
+```
+scala> sqlContext.sql("SELECT country,count(*) as nb FROM spark_albums_table group by country having count(*)>=200 order by nb").show
++------------------+----+
+|           country|  nb|
++------------------+----+
+|           Estonia| 207|
+|       Switzerland| 209|
+|          Portugal| 217|
+|           Jamaica| 234|
+|            Mexico| 266|
+|           Austria| 318|
+|           Denmark| 346|
+|         Argentina| 525|
+|            Turkey| 617|
+|Russian Federation| 751|
+|           Belgium| 763|
+|            Brazil| 889|
+|            Norway| 898|
+|            Poland|1121|
+|             Spain|1352|
+|       Netherlands|1405|
+|         Australia|1556|
+|             Italy|1636|
+|            Canada|1813|
+|           Finland|1970|
++------------------+----+
+```
+To exit the REPL type ```exit```
+
+You can see a great demo of running htese steps inside the Zeppelin Notebook [here](https://github.com/victorcouste/zeppelin-spark-cassandra-demo/)
+
+
 ----------
 
 
@@ -545,7 +730,7 @@ DSE Streaming Demo
 --------------------
 **Spark Notebook**
 
-[Spark Notebook](http://spark-notebook.io/) is an awesome tool for exploring Spark and making simple visualizations. It's not a DataStax product. Check in back here again soon for a quick demo. See: https://github.com/retroryan/twitter_classifier/tree/master/notebooks/TweetAnalysis
+Much like Zeppelin, [Spark Notebook](http://spark-notebook.io/) is an awesome tool for exploring Spark and making simple visualizations. It's not a DataStax productbut for a great demo from another of our DataStax colleagues see: https://github.com/retroryan/twitter_classifier/tree/master/notebooks/TweetAnalysis
 
 >Have fun with it! See what you come up with :)
 
