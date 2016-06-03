@@ -382,7 +382,7 @@ And there's a big reduction in request latency too:
 Request complete | 2016-06-03 05:27:57.145701 | 172.31.24.137 |           1701
 ```
 
-For more detailed classed on data modeling, consistency, and Cassandra 101, check out the free classes at the [DataStax Academy](www.academy.datastax.com) website. 
+For more detailed classes on data modeling, consistency, and Cassandra 101, check out the free classes at the [DataStax Academy](www.academy.datastax.com) website. 
 
 ----------
 
