@@ -778,7 +778,7 @@ DSE Streaming Demo
 --------------------
 **Spark Notebook**
 
-Much like Zeppelin, [Spark Notebook](http://spark-notebook.io/) is an awesome tool for exploring Spark and making simple visualizations. It's not a DataStax productbut for a great demo from another of our DataStax colleagues see: https://github.com/retroryan/twitter_classifier/tree/master/notebooks/TweetAnalysis
+Much like Zeppelin, [Spark Notebook](http://spark-notebook.io/) is an awesome tool for exploring Spark and making simple visualizations. It's not a DataStax product - but for a great demo from another of our DataStax colleagues see: https://github.com/retroryan/twitter_classifier/tree/master/notebooks/TweetAnalysis
 
 >Have fun with it! See what you come up with :)
 
