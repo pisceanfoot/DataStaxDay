@@ -4,6 +4,8 @@ Welcome to DataStax Essentials Day!
 
 In this session, you'll learn all about DataStax Enterprise. It's a mix between presentation and hands-on. This is your reference for the hands-on content. Feel free to bookmark this page for future reference! 
 
+>Based on original work by DataStax colleagues Marc Selwan, Rich Reffner and Victor Coustenoble.
+
 ----------
 
 
