@@ -352,17 +352,35 @@ Request complete | 2016-06-02 08:13:54.028370 |  172.31.30.32 |          16370
 **Let's compare a lower consistency level:**
 
 ```consistency local_quorum```
+
 >Quorum means majority: RF/2 + 1. In our case, 3/2 = 1 + 1 = 2. At least 2 nodes need to acknowledge the request. 
 
-Let's try the **SELECT** statement again. Any changes in latency? 
-
->Keep in mind that our dataset is so small, it's sitting in memory on all nodes. With larger datasets that spill to disk, the latency cost become much more drastic.
+Let's try the **SELECT** statement again. Any changes in latency? Run it a couple of times for a consistent result. 
 
 ```
-Request complete | 2016-06-02 08:17:55.348393 |  172.31.30.32 |           4393
+Request complete | 2016-06-03 05:26:04.894594 | 172.31.24.137 |           4594
 ```
 
 This looks much better now doesn't it? **LOCAL_QUORUM** is the most commonly used consistency level among developers. It provides a good level of performance and a moderate amount of consistency. That being said, many use cases can warrant  **CL=LOCAL_ONE**. 
+
+>Keep in mind that our dataset is so small, it's sitting in memory on all nodes. With larger datasets that spill to disk, the latency cost become much more drastic.
+
+Let's try this again but this time we only want the fastest replica to respond. Pay attention to what's happening in the trace.
+
+```
+consistency local_one
+```
+```
+SELECT * FROM sales where name='kunal';
+```
+
+Take a look at the trace output. Look at all queries and contact points. What you're witnessing is both the beauty and challenge of distributed systems.
+
+And there's a big reduction in request latency too:
+
+```
+Request complete | 2016-06-03 05:27:57.145701 | 172.31.24.137 |           1701
+```
 
 For more detailed classed on data modeling, consistency, and Cassandra 101, check out the free classes at the [DataStax Academy](www.academy.datastax.com) website. 
 
