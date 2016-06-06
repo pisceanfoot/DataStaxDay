@@ -15,7 +15,7 @@ from datetime import date, timedelta, datetime
 
 from cassandra.cluster import Cluster
 
-KEYSPACE = "amazon"
+KEYSPACE = sys.argv[1]
 META_COLUMN_FAMILY = "metadata"
 RANK_COLUMN_FAMILY = "rank"
 GEO_COLUMN_FAMILY = "clicks"
@@ -194,6 +194,7 @@ if __name__ == '__main__':
 
     meta_prepared = session.prepare(META_INSERT_STATEMENT)
     rank_prepared = session.prepare(RANK_INSERT_STATEMENT)
+    print ('Loading into Keyspace',sys.argv[1])
     print ('loading geo')
     load_geo_data(session, geo_path)
     print ('loading meta')
