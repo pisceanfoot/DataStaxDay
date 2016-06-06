@@ -481,14 +481,29 @@ If it *isn't* already installed, use the following command to install it:
 sudo pip install cassandra-driver
 ``` 
 
+Now we need to load the data and create our Solr cores.
+
 **Run solr_dataloader.py**
 
-This will create the CQL schemas and load the data 
+This will create the CQL schemas and load the data.
+
+```
+python solr_dataloader.py
+...
+loading geo
+loading meta
+Finished!
+```
 
 **Run create_core.sh**
 
 This will generate Solr cores and index the data
+```
+./create_core.sh 
 
+Creating Solr cores...
+finished creating Solr cores!
+```
 
 The Amazon data model includes the following tables:
 
