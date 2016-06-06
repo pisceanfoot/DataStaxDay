@@ -52,13 +52,11 @@ In this example the response tells us that the Spark Master is running on intern
 If you've installed DevCenter you can use it to run queries, view schemas, manage scripts etc. 
 
 To access your cluster:
-- Simply add a new connection
-- Enter a name for your connection
-- Enter any of the external IP's provided as a contact host
+- Simply add a new connection, supplying a name for your connection and for the contact host use any of the external IP's provided.
 - Wait a few seconds for the connection to complete, and the keyspace and table details for the database will be displayed
+- You can view Keyspaces and tables, run CQL commands and save scripts.
 
-![DevCenter How To](http://i.imgur.com/8zwzmDj.png)
-
+You can run most of the following exercioses in DevCenter but to get the full benefit of the advanced features like consistency levels you should **cqlsh** as an interactive command line tool for CQL access to Cassandra. For the exercies below we will be using cqlsh
 
 ----------
 
@@ -69,8 +67,6 @@ Hands On DSE Cassandra
 Cassandra is the brains of DSE. It's an awesome storage engine that handles replication, availability, structuring, and of course, storing the data at lightning speeds. It's important to get yourself acquainted with Cassandra to fully utilize the power of the DSE Stack. 
 
 #### Creating a Keyspace, Table, and Queries 
-
-You can run the following CQL commands in DevCenter or you can use **cqlsh** as an interactive command line tool for CQL access to Cassandra. 
 
 Start cqlsh like this from the command prompt on one of the nodes in the cluster:
 
@@ -161,11 +157,14 @@ Since Cassandra use cases are typically focused on performance and up-time, it's
 
 Here's how to do the exercise...
 
+Remember to check that you're using youre default keyspace:
+
+```
+use <yourkeyspace>;
+```
+
 1) Use the CQL script below to create the tables. You'll notice that all the tables are exactly the same except for the primary key definition.
 ```
-create keyspace if not exists primary_keys_ks with replication = { 'class' : 'SimpleStrategy', 'replication_factor' : 3 };
-
-use primary_keys_ks;
 
 create table sentiment1 (
 body text,         // social message body text
@@ -439,9 +438,20 @@ select * from sales WHERE solr_query='{"q":"name:kunal", "fq":"item:*pple*", "so
  
 > For your reference, [here's the doc](http://docs.datastax.com/en/datastax_enterprise/4.8/datastax_enterprise/srch/srchCql.html?scroll=srchCQL__srchSolrTokenExp) that shows some of things you can do.
 
-OK! Time to work with some more interesting data. Meet Amazon book sales data.
+OK! Time to work with some more interesting data. Meet **Amazon Book Sales** data.
 
-**Install pip**
+There are some Linux and Cassandra pre-requisites need for this exercise.
+* development tools like gcc compiler, Python libraries
+* Pip Python - package manager
+* DataStax Python Driver
+
+You can check if they're already installed using a package manager e.g. on Ubuntu:
+```
+apt-cache policy gcc python-dev python-pip python-dev build-essential
+```
+If any of the packages are not installed, follow the instructions below.
+
+**Install pip and dependencies**
 
 ```
 sudo apt-get install gcc python-dev
@@ -449,21 +459,51 @@ sudo apt-get install python-pip python-dev build-essential
 sudo pip install --upgrade pip
 sudo pip install --upgrade virtualenv 
 ```
+
 **Install the Python Cassandra Driver**
+
+The next step is to install the DataStax Cassandra Python Driver.
+
+You can check if its already installed using the following command:
+```
+pip show cassandra-driver
+---
+Name: cassandra-driver
+Version: 3.4.1
+Location: /usr/local/lib/python2.7/dist-packages
+Requires: six, futures
+```
+If it *isn't* already installed, use the following command to install it:
 
 >This might take some time on less powerful machines
 
 ```
 sudo pip install cassandra-driver
 ``` 
+
+Now we need to load the data and create our Solr cores.
+
 **Run solr_dataloader.py**
 
-This will create the CQL schemas and load the data 
+This will create the CQL schemas and load the data.
+
+```
+python solr_dataloader.py
+...
+loading geo
+loading meta
+Finished!
+```
 
 **Run create_core.sh**
 
 This will generate Solr cores and index the data
+```
+./create_core.sh 
 
+Creating Solr cores...
+finished creating Solr cores!
+```
 
 The Amazon data model includes the following tables:
 
