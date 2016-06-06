@@ -449,7 +449,7 @@ You can check if they're already installed using a package manager e.g. on Ubunt
 ```
 apt-cache policy gcc python-dev python-pip python-dev build-essential
 ```
-If any of the packages are not installed, follow the instructions below.
+If any of the packages are not installed, follow the instructions below. If you're sharing a cluster with other students you should decide between you who will perform these tasks on which nodes!
 
 **Install pip and dependencies**
 
@@ -485,11 +485,12 @@ Now we need to load the data and create our Solr cores.
 
 **Run solr_dataloader.py**
 
-This will create the CQL schemas and load the data.
+This will create the CQL schemas and load the data. Be sure to pass the name of your keyspace as a parameter:
 
 ```
-python solr_dataloader.py
+./create_data.sh <name of your keyspace>
 ...
+Loading into Keyspace ...
 loading geo
 loading meta
 Finished!
@@ -497,20 +498,21 @@ Finished!
 
 **Run create_core.sh**
 
-This will generate Solr cores and index the data
+This will generate Solr cores and index the data. Be sure to pass the name of your keyspace as a parameter:
 ```
-./create_core.sh 
-
+./create_core.sh <name of your keyspace>
+...
 Creating Solr cores...
 finished creating Solr cores!
 ```
+
 
 The Amazon data model includes the following tables:
 
 
 Click stream data:
 ```
-CREATE TABLE amazon.clicks (
+CREATE TABLE <your keyspace name>.clicks (
     asin text,
     seq timeuuid,
     user uuid,
@@ -532,7 +534,7 @@ CREATE TABLE amazon.clicks (
 And book metadata: 
 
 ```
-CREATE TABLE amazon.metadata (
+CREATE TABLE <your keyspace name>.metadata (
     asin text PRIMARY KEY,
     also_bought set<text>,
     buy_after_viewing set<text>,
@@ -548,27 +550,27 @@ So what are things you can do?
 
 **Filter queries**: These are awesome because the result set gets cached in memory. 
 ```
-SELECT * FROM amazon.metadata WHERE solr_query='{"q":"title:Noir~", "fq":"categories:Books", "sort":"title asc"}' limit 10; 
+SELECT * FROM <your keyspace name>.metadata WHERE solr_query='{"q":"title:Noir~", "fq":"categories:Books", "sort":"title asc"}' limit 10; 
 ```
 
 **Faceting**: Get counts of fields 
 ```
-SELECT * FROM amazon.metadata WHERE solr_query='{"q":"title:Noir~", "facet":{"field":"categories"}}' limit 10; 
+SELECT * FROM <your keyspace name>.metadata WHERE solr_query='{"q":"title:Noir~", "facet":{"field":"categories"}}' limit 10; 
 ```
 
 **Geospatial Searches**: Supports box and radius
 ```
-SELECT * FROM amazon.clicks WHERE solr_query='{"q":"asin:*", "fq":"+{!geofilt pt=\"37.7484,-122.4156\" sfield=location d=1}"}' limit 10; 
+SELECT * FROM <your keyspace name>.clicks WHERE solr_query='{"q":"asin:*", "fq":"+{!geofilt pt=\"37.7484,-122.4156\" sfield=location d=1}"}' limit 10; 
 ```
 
 **Joins**: Not your relational joins. These queries 'borrow' indexes from other tables to add filter logic. These are fast! 
 ```
-SELECT * FROM amazon.metadata WHERE solr_query='{"q":"*:*", "fq":"{!join from=asin to=asin force=true fromIndex=amazon.clicks}area_code:415"}' limit 5; 
+SELECT * FROM <your keyspace name>.metadata WHERE solr_query='{"q":"*:*", "fq":"{!join from=asin to=asin force=true fromIndex=<your keyspace name>.clicks}area_code:415"}' limit 5; 
 ```
 
 **Fun all in one**
 ```
-SELECT * FROM amazon.metadata WHERE solr_query='{"q":"*:*", "facet":{"field":"categories"}, "fq":"{!join from=asin to=asin force=true fromIndex=amazon.clicks}area_code:415"}' limit 5;
+SELECT * FROM <your keyspace name>.metadata WHERE solr_query='{"q":"*:*", "facet":{"field":"categories"}, "fq":"{!join from=asin to=asin force=true fromIndex=<your keyspace name>.clicks}area_code:415"}' limit 5;
 ```
 
 Want to see a really cool example of a live DSE Search app? Check out [KillrVideo](http://www.killrvideo.com/) and its [Git](https://github.com/luketillman/killrvideo-csharp) to see it in action. 
@@ -594,7 +596,7 @@ It's a little tricky to have an entire class run streaming operations on a singl
 Try some unfamiliar CQL commands on that Amazon data - like a sum on a column:
 
 ```
-use amazon;
+use <your keyspace name>.;
 SELECT sum(price) FROM metadata;
 ```
 You should see the following output:
