@@ -56,7 +56,8 @@ To access your cluster:
 - Wait a few seconds for the connection to complete, and the keyspace and table details for the database will be displayed
 - You can view Keyspaces and tables, run CQL commands and save scripts.
 
-You can run most of the following exercioses in DevCenter but to get the full benefit of the advanced features like consistency levels you should **cqlsh** as an interactive command line tool for CQL access to Cassandra. For the exercies below we will be using cqlsh
+You can run most of the following exercioses in DevCenter but to get the full benefit of the advanced features like consistency levels you should use **cqlsh** as an interactive command line tool for CQL access to Cassandra. 
+For the exercies below we will be using cqlsh.
 
 ----------
 
@@ -71,7 +72,7 @@ Cassandra is the brains of DSE. It's an awesome storage engine that handles repl
 Start cqlsh like this from the command prompt on one of the nodes in the cluster:
 
 ```
-cqlsh <private ip address>
+cqlsh <node private ip address>
 ``` 
 or
 ```
