@@ -129,6 +129,10 @@ describe tables
 
 We can check how many rows there are in our table after the insert of five rows:
 ```
+select count(*) from <yourkeyspace>.sales;
+```
+or
+```
 select count(*) from sales;
 ```
 
@@ -158,7 +162,7 @@ Since Cassandra use cases are typically focused on performance and up-time, it's
 
 Here's how to do the exercise...
 
-Remember to check that you're using youre default keyspace:
+Remember to check that you're using your default keyspace:
 
 ```
 use <yourkeyspace>;
