@@ -553,29 +553,35 @@ CREATE TABLE <your keyspace name>.metadata (
 
 So what are things you can do? 
 
+First, set our ***default*** keyspace so that we dont need to type it in every time.
+
+```
+use <yourkeyspace>;
+```
+
 **Filter queries**: These are awesome because the result set gets cached in memory. 
 ```
-SELECT * FROM <your keyspace name>.metadata WHERE solr_query='{"q":"title:Noir~", "fq":"categories:Books", "sort":"title asc"}' limit 10; 
+SELECT * FROM metadata WHERE solr_query='{"q":"title:Noir~", "fq":"categories:Books", "sort":"title asc"}' limit 10; 
 ```
 
 **Faceting**: Get counts of fields 
 ```
-SELECT * FROM <your keyspace name>.metadata WHERE solr_query='{"q":"title:Noir~", "facet":{"field":"categories"}}' limit 10; 
+SELECT * FROM metadata WHERE solr_query='{"q":"title:Noir~", "facet":{"field":"categories"}}' limit 10; 
 ```
 
 **Geospatial Searches**: Supports box and radius
 ```
-SELECT * FROM <your keyspace name>.clicks WHERE solr_query='{"q":"asin:*", "fq":"+{!geofilt pt=\"37.7484,-122.4156\" sfield=location d=1}"}' limit 10; 
+SELECT * FROM clicks WHERE solr_query='{"q":"asin:*", "fq":"+{!geofilt pt=\"37.7484,-122.4156\" sfield=location d=1}"}' limit 10; 
 ```
 
 **Joins**: Not your relational joins. These queries 'borrow' indexes from other tables to add filter logic. These are fast! 
 ```
-SELECT * FROM <your keyspace name>.metadata WHERE solr_query='{"q":"*:*", "fq":"{!join from=asin to=asin force=true fromIndex=<your keyspace name>.clicks}area_code:415"}' limit 5; 
+SELECT * FROM metadata WHERE solr_query='{"q":"*:*", "fq":"{!join from=asin to=asin force=true fromIndex=clicks}area_code:415"}' limit 5; 
 ```
 
 **Fun all in one**
 ```
-SELECT * FROM <your keyspace name>.metadata WHERE solr_query='{"q":"*:*", "facet":{"field":"categories"}, "fq":"{!join from=asin to=asin force=true fromIndex=<your keyspace name>.clicks}area_code:415"}' limit 5;
+SELECT * FROM metadata WHERE solr_query='{"q":"*:*", "facet":{"field":"categories"}, "fq":"{!join from=asin to=asin force=true fromIndex=clicks}area_code:415"}' limit 5;
 ```
 
 Want to see a really cool example of a live DSE Search app? Check out [KillrVideo](http://www.killrvideo.com/) and its [Git](https://github.com/luketillman/killrvideo-csharp) to see it in action. 
@@ -642,7 +648,7 @@ chmod 755 /tmp/albums.csv
 
 Now we start the Spark REPL and pull in the csv reader from Databricks (after its downloaded the first time we can thereafter just use an import statement inside the REPL e.g. ```import com.databricks.spark.csv._```):
 ```
-dse spark --packages com.databricks:spark-csv_2.10:1.0.3
+dse spark --packages com.databricks:spark-csv_2.10:1.0.3 --conf spark.cores.max=1
 ```
 Once inde the REPL we can run some Scala commands:
 ```
