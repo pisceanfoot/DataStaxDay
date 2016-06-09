@@ -553,29 +553,35 @@ CREATE TABLE <your keyspace name>.metadata (
 
 So what are things you can do? 
 
+First, set our ***default*** keyspace so that we dont need to type it in every time.
+
+```
+use <yourkeyspace>;
+```
+
 **Filter queries**: These are awesome because the result set gets cached in memory. 
 ```
-SELECT * FROM <your keyspace name>.metadata WHERE solr_query='{"q":"title:Noir~", "fq":"categories:Books", "sort":"title asc"}' limit 10; 
+SELECT * FROM metadata WHERE solr_query='{"q":"title:Noir~", "fq":"categories:Books", "sort":"title asc"}' limit 10; 
 ```
 
 **Faceting**: Get counts of fields 
 ```
-SELECT * FROM <your keyspace name>.metadata WHERE solr_query='{"q":"title:Noir~", "facet":{"field":"categories"}}' limit 10; 
+SELECT * FROM metadata WHERE solr_query='{"q":"title:Noir~", "facet":{"field":"categories"}}' limit 10; 
 ```
 
 **Geospatial Searches**: Supports box and radius
 ```
-SELECT * FROM <your keyspace name>.clicks WHERE solr_query='{"q":"asin:*", "fq":"+{!geofilt pt=\"37.7484,-122.4156\" sfield=location d=1}"}' limit 10; 
+SELECT * FROM clicks WHERE solr_query='{"q":"asin:*", "fq":"+{!geofilt pt=\"37.7484,-122.4156\" sfield=location d=1}"}' limit 10; 
 ```
 
 **Joins**: Not your relational joins. These queries 'borrow' indexes from other tables to add filter logic. These are fast! 
 ```
-SELECT * FROM <your keyspace name>.metadata WHERE solr_query='{"q":"*:*", "fq":"{!join from=asin to=asin force=true fromIndex=<your keyspace name>.clicks}area_code:415"}' limit 5; 
+SELECT * FROM metadata WHERE solr_query='{"q":"*:*", "fq":"{!join from=asin to=asin force=true fromIndex=clicks}area_code:415"}' limit 5; 
 ```
 
 **Fun all in one**
 ```
-SELECT * FROM <your keyspace name>.metadata WHERE solr_query='{"q":"*:*", "facet":{"field":"categories"}, "fq":"{!join from=asin to=asin force=true fromIndex=<your keyspace name>.clicks}area_code:415"}' limit 5;
+SELECT * FROM metadata WHERE solr_query='{"q":"*:*", "facet":{"field":"categories"}, "fq":"{!join from=asin to=asin force=true fromIndex=clicks}area_code:415"}' limit 5;
 ```
 
 Want to see a really cool example of a live DSE Search app? Check out [KillrVideo](http://www.killrvideo.com/) and its [Git](https://github.com/luketillman/killrvideo-csharp) to see it in action. 
@@ -632,17 +638,41 @@ B0002GYI5A      899.0
 ```
 
 Now let's try an excercise using the Spark REPL.
-We will load a csv file using Spark workers on the three nodes. To do this we would usually use a distributed file system like S3 or CFS that is visible to all three nodes. For this exercise we can simply copy the file to the same location on all three nodes.
+We will load a csv file into a Cassandra table.
 
 In the repo directory:
+Start cqlsh like this from the command prompt on one of the nodes in the cluster:
+
 ```
-cp albums.csv /tmp
-chmod 755 /tmp/albums.csv
+cqlsh <node private ip address>
+``` 
+or
+```
+cqlsh <node name>
 ```
 
-Now we start the Spark REPL and pull in the csv reader from Databricks (after its downloaded the first time we can thereafter just use an import statement inside the REPL e.g. ```import com.databricks.spark.csv._```):
+Then :
 ```
-dse spark --packages com.databricks:spark-csv_2.10:1.0.3
+USE <your keyspace name>;
+
+CREATE TABLE albums (
+    artist text,
+    album text,
+    year text,
+    country text,
+    quality text,
+    status text,
+    PRIMARY KEY ((artist,album, year,country))
+);
+
+COPY albums FROM 'albums.csv' WITH HEADER=TRUE;
+```
+
+To exit the cqlsh, type ```exit```
+
+Now we start the Spark REPL :
+```
+dse spark --conf spark.cores.max=1
 ```
 Once inde the REPL we can run some Scala commands:
 ```
@@ -655,7 +685,7 @@ val sqlContext = new SQLContext(sc)
 ```
 Now we can create a dataframe from our distributed file:
 ```
-val df_albums = sqlContext.read.format("com.databricks.spark.csv").option("header", "true").load("file:///tmp/albums.csv").cache
+val df_albums = sqlContext.read.format("org.apache.spark.sql.cassandra").options(Map("keyspace" -> "<your keyspace name>", "table" -> "albums")).load().cache
 ```
 >Dataframes were introduced in Spark 1.3 and are a more efficient means of managing and analysing data than traditional Spark RDD's - you can read more about them [here](https://databricks.com/blog/2015/02/17/introducing-dataframes-in-spark-for-large-scale-data-science.html) and a good explanation [here](http://stackoverflow.com/questions/31508083/difference-between-dataframe-and-rdd-in-spark) 
 
@@ -673,78 +703,78 @@ root
 We can display some of the records (by default the first 20):
 ```
 scala> df_albums.show()
-+----------+--------------------+----+--------------+-------+--------+
-|    artist|               album|year|       country|quality|  status|
-+----------+--------------------+----+--------------+-------+--------+
-|Ultra Naté|Stranger Than Fic...|2001|           USA| normal|Official|
-|Ultra Naté|                Free|1997|   Netherlands| normal|Official|
-|Ultra Naté|          Is It Love|1992|           USA| normal|Official|
-|Ultra Naté|New Kind of Medicine|1998|United Kingdom| normal|Official|
-|Ultra Naté|                Free|1997|     Australia| normal|Official|
-|Ultra Naté|Free: The Mood II...|1997|       Denmark| normal|Official|
-|Ultra Naté|           Rejoicing|1991|           USA| normal|Official|
-|Ultra Naté|        Found a Cure|1998|United Kingdom| normal|Official|
-|Ultra Naté| Situation: Critical|1998|United Kingdom| normal|Official|
-|Ultra Naté|                Free|1998|  South Africa| normal|Official|
-|Ultra Naté|       Joy / Show Me|1993|           USA| normal|Official|
-|Ultra Naté|           Get It Up|2001|       Germany| normal|Official|
-|Ultra Naté|One Woman's Insanity|1993|           USA| normal|Official|
-|Ultra Naté|  Situation:Critical|1998|           USA| normal|Official|
-|Ultra Naté|              Desire|2000|       Germany| normal|Official|
-|Ultra Naté|New Kind of Medic...|1998|United Kingdom| normal|Official|
-|Ultra Naté|Blue Notes in the...|1991|           USA| normal|Official|
-|    Object|   The Ethane Asylum|2008|           USA| normal|Official|
-|    Object|  Part-Time Paranoia|2001|       Germany| normal|Official|
-|    Object| The Reflecting Skin|  -1|       Unknown| normal|Official|
-+----------+--------------------+----+--------------+-------+--------+
++------------------+--------------------+----+------------------+-------+--------------+
+|            artist|               album|year|           country|quality|        status|
++------------------+--------------------+----+------------------+-------+--------------+
+|      Miss Platnum|               Chefa|2007|           Germany| normal|      Official|
+|       Mount Eerie|             I Whale|2005|               USA| normal|      Official|
+|        Jerry Reed|         Me and Chet|1972|               USA| normal|      Official|
+|Insane Clown Posse|         Hokus Pokus|1998|               USA| normal|     Promotion|
+|            Deluxe|Colillas en el suelo|2007|             Spain| normal|      Official|
+|    The Low Anthem|2009-06-18: Daytr...|2009|           Unknown| normal|     Promotion|
+|Hardcore Superstar|Mother's Love / S...|  -1|           Unknown| normal|      Official|
+|         Sub Focus|              Splash|2010|    United Kingdom| normal|      Official|
+|  Benjamin Diamond|      Fit your heart|  -1|           Unknown| normal|      Official|
+|              Kane|       Shot of a Gun|2008|       Netherlands| normal|      Official|
+|            Tiësto|Magik One: First ...|2000|       Netherlands| normal|      Official|
+|       Regenerator|     Everyone Follow|1994|               USA| normal|      Official|
+|    Duke Ellington|Music by Ellingto...|1986|           Unknown| normal|      Official|
+|   Mott the Hoople|      The Collection|1987|            France| normal|      Official|
+|          R. Kelly|       Bump N' Grind|1994|               USA| normal|      Official|
+|        Duvelduvel|        Puur Kultuur|2007|       Netherlands| normal|      Official|
+|       StoneBridge|        Take Me Away|2005|    United Kingdom| normal|      Official|
+|     Pig Destroyer|                Demo|1997|               USA| normal|Pseudo-Release|
+|         Ленинград|Мат без электриче...|1999|Russian Federation| normal|      Official|
+| Jacques Offenbach|         Pomme d'api|1983|            France| normal|      Official|
++------------------+--------------------+----+------------------+-------+--------------+
 ```
 We can FILTER the results:
 ```
 scala> df_albums.filter("year > 2000").show()
-+--------------------+--------------------+----+--------------+-------+--------+
-|              artist|               album|year|       country|quality|  status|
-+--------------------+--------------------+----+--------------+-------+--------+
-|          Ultra Naté|Stranger Than Fic...|2001|           USA| normal|Official|
-|          Ultra Naté|           Get It Up|2001|       Germany| normal|Official|
-|              Object|   The Ethane Asylum|2008|           USA| normal|Official|
-|              Object|  Part-Time Paranoia|2001|       Germany| normal|Official|
-|              Hayden|     In Field & Town|2008|        Canada| normal|Official|
-|              Hayden|   Elk-Lake Serenade|2004|        Canada| normal|Official|
-|              Hayden|            Us Alone|2013|           USA| normal|Official|
-|              Hayden|Skyscraper Nation...|2001|        Canada| normal|Official|
-|              Hayden|Live at Convocati...|2002|           USA| normal|Official|
-|              Hayden|            Hey Love|2015|        Canada| normal|Official|
-|              Hayden|The Place Where W...|2009|        Canada| normal|Official|
-|Get Cape. Wear Ca...|I-Spy / Call Me I...|2006|United Kingdom| normal|Official|
-|Get Cape. Wear Ca...|Get Cape. Wear Ca...|2005|United Kingdom| normal|Official|
-|Get Cape. Wear Ca...|       Find the Time|2008|United Kingdom| normal|Official|
-|Get Cape. Wear Ca...|   War of the Worlds|2006|United Kingdom| normal|Official|
-|Get Cape. Wear Ca...|Searching for the...|2008|United Kingdom| normal|Official|
-|Get Cape. Wear Ca...|Get Cape. Wear Ca...|2010|United Kingdom| normal|Official|
-|Get Cape. Wear Ca...|    Keep Singing Out|2008|United Kingdom| normal|Official|
-|Get Cape. Wear Ca...|                Maps|2012|United Kingdom| normal|Official|
-|Get Cape. Wear Ca...|The Chronicles of...|2006|United Kingdom| normal|Official|
-+--------------------+--------------------+----+--------------+-------+--------+
++--------------------+--------------------+----+--------------+-------+--------------+
+|              artist|               album|year|       country|quality|        status|
++--------------------+--------------------+----+--------------+-------+--------------+
+|        Miss Platnum|               Chefa|2007|       Germany| normal|      Official|
+|         Mount Eerie|             I Whale|2005|           USA| normal|      Official|
+|              Deluxe|Colillas en el suelo|2007|         Spain| normal|      Official|
+|      The Low Anthem|2009-06-18: Daytr...|2009|       Unknown| normal|     Promotion|
+|           Sub Focus|              Splash|2010|United Kingdom| normal|      Official|
+|                Kane|       Shot of a Gun|2008|   Netherlands| normal|      Official|
+|          Duvelduvel|        Puur Kultuur|2007|   Netherlands| normal|      Official|
+|         StoneBridge|        Take Me Away|2005|United Kingdom| normal|      Official|
+|    Jake Shimabukuro|   Play Loud Ukulele|2005|       Unknown| normal|      Official|
+|               Foals|             Cassius|2008|United Kingdom| normal|      Official|
+|               Clark|       Growls Garden|2009|United Kingdom| normal|      Official|
+|        Constantines|   Too Slow for Love|2009|        Canada| normal|      Official|
+|The Electric Soft...|   Holes in the Wall|2002|United Kingdom| normal|      Official|
+|        Farben Lehre|           Pozytywka|2003|        Poland| normal|      Official|
+|        Icon of Coil|III: The Soul Is ...|2006|       Unknown| normal|      Official|
+|            DJ Marky|FabricLive 55: DJ...|2011|United Kingdom| normal|      Official|
+|               中川幸太郎|Phantom -PHANTOM ...|2004|         Japan| normal|Pseudo-Release|
+|         Jay Reatard|         In the Dark|2007|       Austria| normal|      Official|
+|               Tryad|            The Tree|2011|       Unknown| normal|     Promotion|
+|                Kiki|         Love Kills!|2012|       Germany| normal|      Official|
++--------------------+--------------------+----+--------------+-------+--------------+
 ```
 We can GROUP BY and COUNT:
 ```
 scala> df_albums.groupBy("year").count().show()
-+----+-----+
++----+-----+                                                                    
 |year|count|
 +----+-----+
 |1917|   10|
 |1918|    6|
 |1919|    4|
-|1980|  813|
-|1981|  854|
-|1982| 1048|
-|1983|  977|
-|1984| 1018|
-|1985| 1006|
-|1986| 1087|
-|1987| 1289|
-|1988| 1327|
-|1989| 1536|
+|1980|  807|
+|1981|  853|
+|1982| 1047|
+|1983|  975|
+|1984| 1007|
+|1985|  998|
+|1986| 1081|
+|1987| 1288|
+|1988| 1323|
+|1989| 1505|
 |1920|    4|
 |1921|    1|
 |1922|    5|
@@ -759,58 +789,58 @@ We can use the DataFrame to create an in-memory Spark SQL table:
 df_albums.registerTempTable("spark_albums_table")
 
 sqlContext.sql("SELECT * FROM spark_albums_table").show
-+----------+--------------------+----+--------------+-------+--------+
-|    artist|               album|year|       country|quality|  status|
-+----------+--------------------+----+--------------+-------+--------+
-|Ultra Naté|Stranger Than Fic...|2001|           USA| normal|Official|
-|Ultra Naté|                Free|1997|   Netherlands| normal|Official|
-|Ultra Naté|          Is It Love|1992|           USA| normal|Official|
-|Ultra Naté|New Kind of Medicine|1998|United Kingdom| normal|Official|
-|Ultra Naté|                Free|1997|     Australia| normal|Official|
-|Ultra Naté|Free: The Mood II...|1997|       Denmark| normal|Official|
-|Ultra Naté|           Rejoicing|1991|           USA| normal|Official|
-|Ultra Naté|        Found a Cure|1998|United Kingdom| normal|Official|
-|Ultra Naté| Situation: Critical|1998|United Kingdom| normal|Official|
-|Ultra Naté|                Free|1998|  South Africa| normal|Official|
-|Ultra Naté|       Joy / Show Me|1993|           USA| normal|Official|
-|Ultra Naté|           Get It Up|2001|       Germany| normal|Official|
-|Ultra Naté|One Woman's Insanity|1993|           USA| normal|Official|
-|Ultra Naté|  Situation:Critical|1998|           USA| normal|Official|
-|Ultra Naté|              Desire|2000|       Germany| normal|Official|
-|Ultra Naté|New Kind of Medic...|1998|United Kingdom| normal|Official|
-|Ultra Naté|Blue Notes in the...|1991|           USA| normal|Official|
-|    Object|   The Ethane Asylum|2008|           USA| normal|Official|
-|    Object|  Part-Time Paranoia|2001|       Germany| normal|Official|
-|    Object| The Reflecting Skin|  -1|       Unknown| normal|Official|
-+----------+--------------------+----+--------------+-------+--------+
++------------------+--------------------+----+------------------+-------+--------------+
+|            artist|               album|year|           country|quality|        status|
++------------------+--------------------+----+------------------+-------+--------------+
+|      Miss Platnum|               Chefa|2007|           Germany| normal|      Official|
+|       Mount Eerie|             I Whale|2005|               USA| normal|      Official|
+|        Jerry Reed|         Me and Chet|1972|               USA| normal|      Official|
+|Insane Clown Posse|         Hokus Pokus|1998|               USA| normal|     Promotion|
+|            Deluxe|Colillas en el suelo|2007|             Spain| normal|      Official|
+|    The Low Anthem|2009-06-18: Daytr...|2009|           Unknown| normal|     Promotion|
+|Hardcore Superstar|Mother's Love / S...|  -1|           Unknown| normal|      Official|
+|         Sub Focus|              Splash|2010|    United Kingdom| normal|      Official|
+|  Benjamin Diamond|      Fit your heart|  -1|           Unknown| normal|      Official|
+|              Kane|       Shot of a Gun|2008|       Netherlands| normal|      Official|
+|            Tiësto|Magik One: First ...|2000|       Netherlands| normal|      Official|
+|       Regenerator|     Everyone Follow|1994|               USA| normal|      Official|
+|    Duke Ellington|Music by Ellingto...|1986|           Unknown| normal|      Official|
+|   Mott the Hoople|      The Collection|1987|            France| normal|      Official|
+|          R. Kelly|       Bump N' Grind|1994|               USA| normal|      Official|
+|        Duvelduvel|        Puur Kultuur|2007|       Netherlands| normal|      Official|
+|       StoneBridge|        Take Me Away|2005|    United Kingdom| normal|      Official|
+|     Pig Destroyer|                Demo|1997|               USA| normal|Pseudo-Release|
+|         Ленинград|Мат без электриче...|1999|Russian Federation| normal|      Official|
+| Jacques Offenbach|         Pomme d'api|1983|            France| normal|      Official|
++------------------+--------------------+----+------------------+-------+--------------+
 ```
 
 And now we can perform complex SQL operations on the data in Spark memory:
 ```
 scala> sqlContext.sql("SELECT country,count(*) as nb FROM spark_albums_table group by country having count(*)>=200 order by nb").show
-+------------------+----+
++------------------+----+                                                       
 |           country|  nb|
 +------------------+----+
+|       Switzerland| 204|
 |           Estonia| 207|
-|       Switzerland| 209|
 |          Portugal| 217|
 |           Jamaica| 234|
-|            Mexico| 266|
+|            Mexico| 262|
 |           Austria| 318|
-|           Denmark| 346|
-|         Argentina| 525|
+|           Denmark| 345|
+|         Argentina| 523|
 |            Turkey| 617|
-|Russian Federation| 751|
-|           Belgium| 763|
-|            Brazil| 889|
-|            Norway| 898|
-|            Poland|1121|
-|             Spain|1352|
-|       Netherlands|1405|
-|         Australia|1556|
-|             Italy|1636|
-|            Canada|1813|
-|           Finland|1970|
+|Russian Federation| 743|
+|           Belgium| 757|
+|            Brazil| 865|
+|            Norway| 887|
+|            Poland|1108|
+|             Spain|1344|
+|       Netherlands|1395|
+|         Australia|1541|
+|             Italy|1633|
+|            Canada|1809|
+|           Finland|1966|
 +------------------+----+
 ```
 To exit the REPL type ```exit```
