@@ -641,6 +641,17 @@ Now let's try an excercise using the Spark REPL.
 We will load a csv file into a Cassandra table.
 
 In the repo directory:
+Start cqlsh like this from the command prompt on one of the nodes in the cluster:
+
+```
+cqlsh <node private ip address>
+``` 
+or
+```
+cqlsh <node name>
+```
+
+Then :
 ```
 USE <your keyspace name>;
 
@@ -656,6 +667,8 @@ CREATE TABLE albums (
 
 COPY albums FROM 'albums.csv' WITH HEADER=TRUE;
 ```
+
+To exit the cqlsh, type ```exit```
 
 Now we start the Spark REPL :
 ```
