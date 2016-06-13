@@ -76,7 +76,11 @@ cqlsh <node private ip address>
 ``` 
 or
 ```
-cqlsh <node name>
+cqlsh <node name> 
+```
+ie:
+```
+cqlsh node0
 ```
 
 Let's make our first Cassandra Keyspace! 
