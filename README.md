@@ -449,6 +449,8 @@ There are some Linux and Cassandra pre-requisites need for this exercise.
 * development tools like gcc compiler, Python libraries
 * Pip Python - package manager
 * DataStax Python Driver
+ 
+NOTE : All python dependancies are already installed on DataStax Days clusters.
 
 You can check if they're already installed using a package manager e.g. on Ubuntu:
 ```
@@ -888,5 +890,10 @@ dsetool status //shows current status of cluster, including DSE features
 **The main log you'll be taking a look at for troubleshooting outside of OpsCenter:**
 ```
 /var/log/cassandra/system.log
+```
+
+To see OpsCenter UI, open the browser to
+```
+ http://<your cluster IP>:8888
 ```
 
