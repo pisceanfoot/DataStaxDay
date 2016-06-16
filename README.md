@@ -598,12 +598,12 @@ SELECT * FROM clicks WHERE solr_query='{"q":"asin:*", "fq":"+{!geofilt pt=\"37.7
 
 **Joins**: Not your relational joins. These queries 'borrow' indexes from other tables to add filter logic. These are fast! 
 ```
-SELECT * FROM metadata WHERE solr_query='{"q":"*:*", "fq":"{!join from=asin to=asin force=true fromIndex=clicks}area_code:415"}' limit 5; 
+SELECT * FROM metadata WHERE solr_query='{"q":"*:*", "fq":"{!join from=asin to=asin force=true fromIndex=<your keyspace name>.clicks}area_code:415"}' limit 5; 
 ```
 
 **Fun all in one**
 ```
-SELECT * FROM metadata WHERE solr_query='{"q":"*:*", "facet":{"field":"categories"}, "fq":"{!join from=asin to=asin force=true fromIndex=clicks}area_code:415"}' limit 5;
+SELECT * FROM metadata WHERE solr_query='{"q":"*:*", "facet":{"field":"categories"}, "fq":"{!join from=asin to=asin force=true fromIndex=<your keyspace name>.clicks}area_code:415"}' limit 5;
 ```
 
 Want to see a really cool example of a live DSE Search app? Check out [KillrVideo](http://www.killrvideo.com/) and its [Git](https://github.com/luketillman/killrvideo-csharp) to see it in action. 
