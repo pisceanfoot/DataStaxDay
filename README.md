@@ -51,9 +51,9 @@ In this example we'll use these IP addresses:
 
 You should then be able to connect to the management consoles for OpsCenter, Spark and Solr:
 
-* OpsCenter: http://<Node 0 external address>:8888 
-* Spark Master: http://<Node 1 external address>:7080 
-* Solr UI: http://<Node 0 external address>:8983/solr 
+* OpsCenter: http://Node 0 external address:8888 
+* Spark Master: http://Node 1 external address:7080 
+* Solr UI: http://Node 0 external address:8983/solr 
 
 OpsCenter and Solr should always start on Node 0, but you may need to check the node where the Spark Master is running. You can easily do this by connecting to one of the nodes via ssh and using the command:
 ```
@@ -102,7 +102,7 @@ cqlsh node0
 Let's make our first Cassandra Keyspace! 
 
 ```
-CREATE KEYSPACE <Enter your name> WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3 };
+CREATE KEYSPACE <Enter your firstname/name> WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3 };
 ```
 
 And just like that, any data within any table you create under your keyspace will automatically be replicated 3 times.
