@@ -4,7 +4,7 @@ Welcome to DataStax Essentials Day!
 
 In this session, you'll learn all about DataStax Enterprise. It's a mix between presentation and hands-on. This is your reference for the hands-on content. Feel free to bookmark this page for future reference! 
 
->Based on original work by DataStax colleagues Marc Selwan, Rich Reffner and Victor Coustenoble.
+>Based on original work by DataStax colleagues Marc Selwan, Rich Reffner, Victor Coustenoble, Simon Ambridge and Negib Marhoul.
 
 ----------
 
@@ -15,6 +15,25 @@ Hands On Setup
 We have a 3 node cluster for you to play with! The cluster is currently running in both **search** and **analytics** mode so you can take advantage of both Spark and Solr on your Cassandra data. 
 
 You'll be given the connection details when the cluster starts.
+
+Use the following IPs:
+Each column in the room connect to one cluster
+Column 1 => cluster 1
+Column 2 => cluster 2
+…
+
+```
+cluster 1	54.194.199.189
+cluster 2	54.229.51.170
+cluster 3	54.194.155.127
+cluster 4	54.171.130.225
+cluster 5	54.171.188.105
+cluster 6	54.229.185.57
+cluster 7	54.229.187.90
+cluster 8	54.229.186.144
+cluster 9	54.229.193.27
+cluster 10	54.200.169.236
+```
 
 To SSH into the cluster, connect as root using the password provided and the external address of one of the nodes:
 ```
@@ -29,15 +48,12 @@ cat /etc/hosts
 ```
 In this example we'll use these IP addresses:
 
-* Node 0 IP adress - external and internal e.g. 54.218.62.199, 172.31.30.32
-* Node 1 IP adress - external and internal e.g. 54.213.132.207, 172.31.24.137
-* Node 2 IP adress - external and internal e.g. 54.186.105.135, 172.31.18.211
 
 You should then be able to connect to the management consoles for OpsCenter, Spark and Solr:
 
-* OpsCenter: http://54.218.62.199:8888 (Node 0 external address)
-* Spark Master: http://54.213.132.207:7080 (Node 1 external address)
-* Solr UI: http://54.218.62.199:8983/solr (Node 0 external address)
+* OpsCenter: http://<Node 0 external address>:8888 
+* Spark Master: http://<Node 1 external address>:7080 
+* Solr UI: http://<Node 0 external address>:8983/solr 
 
 OpsCenter and Solr should always start on Node 0, but you may need to check the node where the Spark Master is running. You can easily do this by connecting to one of the nodes via ssh and using the command:
 ```
