@@ -705,7 +705,7 @@ We need to import SQLContext so that we can create a SQLContext:
 import org.apache.spark.sql.SQLContext
 val sqlContext = new SQLContext(sc)
 ```
-Now we can create a dataframe from our distributed file:
+Now we can create a dataframe from our Cassandra table:
 ```
 val df_albums = sqlContext.read.format("org.apache.spark.sql.cassandra").options(Map("keyspace" -> "<your keyspace name>", "table" -> "albums")).load().cache
 ```
