@@ -4,7 +4,7 @@ Welcome to DataStax Essentials Day!
 
 In this session, you'll learn all about DataStax Enterprise. It's a mix between presentation and hands-on. This is your reference for the hands-on content. Feel free to bookmark this page for future reference! 
 
->Based on original work by DataStax colleagues Marc Selwan, Rich Reffner and Victor Coustenoble.
+>Based on original work by DataStax colleagues Marc Selwan, Rich Reffner, Victor Coustenoble, Simon Ambridge and Negib Marhoul.
 
 ----------
 
@@ -15,6 +15,25 @@ Hands On Setup
 We have a 3 node cluster for you to play with! The cluster is currently running in both **search** and **analytics** mode so you can take advantage of both Spark and Solr on your Cassandra data. 
 
 You'll be given the connection details when the cluster starts.
+
+Use the following IPs:
+Each column in the room connect to one cluster
+Column 1 => cluster 1
+Column 2 => cluster 2
+…
+
+```
+cluster 1	54.194.199.189
+cluster 2	54.229.51.170
+cluster 3	54.194.155.127
+cluster 4	54.171.130.225
+cluster 5	54.171.188.105
+cluster 6	54.229.185.57
+cluster 7	54.229.187.90
+cluster 8	54.229.186.144
+cluster 9	54.229.193.27
+cluster 10	54.200.169.236
+```
 
 To SSH into the cluster, connect as root using the password provided and the external address of one of the nodes:
 ```
@@ -29,15 +48,12 @@ cat /etc/hosts
 ```
 In this example we'll use these IP addresses:
 
-* Node 0 IP adress - external and internal e.g. 54.218.62.199, 172.31.30.32
-* Node 1 IP adress - external and internal e.g. 54.213.132.207, 172.31.24.137
-* Node 2 IP adress - external and internal e.g. 54.186.105.135, 172.31.18.211
 
 You should then be able to connect to the management consoles for OpsCenter, Spark and Solr:
 
-* OpsCenter: http://54.218.62.199:8888 (Node 0 external address)
-* Spark Master: http://54.213.132.207:7080 (Node 1 external address)
-* Solr UI: http://54.218.62.199:8983/solr (Node 0 external address)
+* OpsCenter: http://Node 0 external address:8888 
+* Spark Master: http://Node 1 external address:7080 
+* Solr UI: http://Node 0 external address:8983/solr 
 
 OpsCenter and Solr should always start on Node 0, but you may need to check the node where the Spark Master is running. You can easily do this by connecting to one of the nodes via ssh and using the command:
 ```
@@ -76,13 +92,17 @@ cqlsh <node private ip address>
 ``` 
 or
 ```
-cqlsh <node name>
+cqlsh <node name> 
+```
+ie:
+```
+cqlsh node0
 ```
 
 Let's make our first Cassandra Keyspace! 
 
 ```
-CREATE KEYSPACE <Enter your name> WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3 };
+CREATE KEYSPACE <Enter your firstname/name> WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3 };
 ```
 
 And just like that, any data within any table you create under your keyspace will automatically be replicated 3 times.
@@ -449,6 +469,8 @@ There are some Linux and Cassandra pre-requisites need for this exercise.
 * development tools like gcc compiler, Python libraries
 * Pip Python - package manager
 * DataStax Python Driver
+ 
+NOTE : All python dependancies are already installed on DataStax Days clusters.
 
 You can check if they're already installed using a package manager e.g. on Ubuntu:
 ```
@@ -576,12 +598,12 @@ SELECT * FROM clicks WHERE solr_query='{"q":"asin:*", "fq":"+{!geofilt pt=\"37.7
 
 **Joins**: Not your relational joins. These queries 'borrow' indexes from other tables to add filter logic. These are fast! 
 ```
-SELECT * FROM metadata WHERE solr_query='{"q":"*:*", "fq":"{!join from=asin to=asin force=true fromIndex=clicks}area_code:415"}' limit 5; 
+SELECT * FROM metadata WHERE solr_query='{"q":"*:*", "fq":"{!join from=asin to=asin force=true fromIndex=<your keyspace name>.clicks}area_code:415"}' limit 5; 
 ```
 
 **Fun all in one**
 ```
-SELECT * FROM metadata WHERE solr_query='{"q":"*:*", "facet":{"field":"categories"}, "fq":"{!join from=asin to=asin force=true fromIndex=clicks}area_code:415"}' limit 5;
+SELECT * FROM metadata WHERE solr_query='{"q":"*:*", "facet":{"field":"categories"}, "fq":"{!join from=asin to=asin force=true fromIndex=<your keyspace name>.clicks}area_code:415"}' limit 5;
 ```
 
 Want to see a really cool example of a live DSE Search app? Check out [KillrVideo](http://www.killrvideo.com/) and its [Git](https://github.com/luketillman/killrvideo-csharp) to see it in action. 
@@ -683,7 +705,7 @@ We need to import SQLContext so that we can create a SQLContext:
 import org.apache.spark.sql.SQLContext
 val sqlContext = new SQLContext(sc)
 ```
-Now we can create a dataframe from our distributed file:
+Now we can create a dataframe from our Cassandra table:
 ```
 val df_albums = sqlContext.read.format("org.apache.spark.sql.cassandra").options(Map("keyspace" -> "<your keyspace name>", "table" -> "albums")).load().cache
 ```
@@ -888,5 +910,10 @@ dsetool status //shows current status of cluster, including DSE features
 **The main log you'll be taking a look at for troubleshooting outside of OpsCenter:**
 ```
 /var/log/cassandra/system.log
+```
+
+To see OpsCenter UI, open the browser to
+```
+ http://<your cluster IP>:8888
 ```
 
