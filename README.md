@@ -874,9 +874,9 @@ You can see a great demo of running thse steps inside the Zeppelin Notebook [her
 
 ###Footnote on Distributed Analytics
 
-It's important to remember that Spark is a **distributed** in-memory analytics engine. What does this mean? Lets suppose that you want to load and process the contents of a CSV file. 
+It's important to remember that Spark is a **distributed** in-memory analytics engine. What does this mean? Lets suppose that you want to load and process the contents of a CSV file using SPark. 
 
-We will load a csv file using Spark workers on the three nodes. To do this we would usually use a distributed file system like S3 or CFS that is visible to all three nodes. However, if we are loading on separate machines with their own local file system then we can have to ensure that the source file is available on the same location on every node where Spark will be processing that file.
+We will load a CSV file using Spark workers on the three nodes. To do this we would usually use a distributed file system like S3 that is visible to all three nodes - this enables all the Spark nodes to see the file at the same location. However, if we are loading on  machines with their own local file system then we have to ensure that the source file is available on the same location on every node where Spark will be processing that file.
 
 We do this by copying the file to the same location on all three nodes.
 
@@ -891,7 +891,7 @@ Now we can start the Spark REPL and pull in the CSV reader from Databricks. The 
 dse spark --packages com.databricks:spark-csv_2.10:1.0.3 --conf spark.cores.max=1
 ```
 
- Once inde the REPL we can run some Scala commands.
+ Once inside the REPL we can run some Scala commands.
  
  First we create the Spark Context:
  ```
