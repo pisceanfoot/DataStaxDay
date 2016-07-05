@@ -872,6 +872,38 @@ You can see a great demo of running thse steps inside the Zeppelin Notebook [her
 
 ----------
 
+Footnote on Distributed Analytics
+
+It's important to remember that Spark is a **distributed** in-memory analytics engine. What does this mean? Lets suppose that you want to load and process the contents of a CSV file. 
+
+We will load a csv file using Spark workers on the three nodes. To do this we would usually use a distributed file system like S3 or CFS that is visible to all three nodes. However, if we are loading on separate machines with their own local file system then we can have to ensure that the source file is available on the same location on every node where Spark will be processing that file.
+
+We do this by copying the file to the same location on all three nodes.
+
+ 
+In the repo directory copy the file to the same place on each of the three nodes:
+```
+cp albums.csv /tmp
+chmod 755 /tmp/albums.csv
+```
+Now we can start the Spark REPL and pull in the CSV reader from Databricks. The first time we use the CSV reader we tell Spark to download it - after it has been downloaded for the first time we can thereafter just use an import statement inside the REPL e.g. ```import com.databricks.spark.csv._```:
+```
+dse spark --packages com.databricks:spark-csv_2.10:1.0.3 --conf spark.cores.max=1
+```
+
+ Once inde the REPL we can run some Scala commands.
+ 
+ First we create the Spark Context:
+ ```
+ val sqlContext = new SQLContext(sc)
+ ```
+ Now we can create a dataframe from our distributed file - the Spark process on every Spark node in our SPark cluster will load the file from the same location in ```/tmp```:
+ ```
+-val df_albums = sqlContext.read.format("com.databricks.spark.csv").option("header", "true").load("file:///tmp/albums.csv").cache
+, "table" -> "albums")).load().cache
+ ```
+When the data is in the dataframe you can process it as in the examples shown previously.
+
 
 DSE Streaming Demo
 --------------------
