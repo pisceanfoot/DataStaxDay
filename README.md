@@ -872,7 +872,7 @@ You can see a great demo of running thse steps inside the Zeppelin Notebook [her
 
 ----------
 
-Footnote on Distributed Analytics
+###Footnote on Distributed Analytics
 
 It's important to remember that Spark is a **distributed** in-memory analytics engine. What does this mean? Lets suppose that you want to load and process the contents of a CSV file. 
 
